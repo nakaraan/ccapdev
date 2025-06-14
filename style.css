@@ -1,0 +1,28 @@
+body {
+  font-family: Arial, sans-serif;
+  padding: 2rem;
+  background-color: #f9fafb;
+}
+
+h1 {
+  text-align: center;
+  color: #333;
+}
+
+button {
+  margin: 0 5px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.reservation {
+  background: #fff;
+  padding: 1rem;
+  border: 1px solid #ccc;
+  margin-bottom: 1rem;
+  border-radius: 5px;
+}
+
+input {
+  margin: 5px;
+}
