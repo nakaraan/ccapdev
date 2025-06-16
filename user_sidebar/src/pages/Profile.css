@@ -1,0 +1,107 @@
+/* Outer wrapper */
+.profile-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #fff;
+  height: 100vh;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* Main card */
+.profile-card {
+  display: flex;
+  background-color: rgba(4, 21, 39, 1);
+  padding: 50px;
+  border-radius: 15px;
+  box-shadow: 0 0 15px rgb(255, 255, 255);
+  width: 900px;
+  gap: 30px;
+}
+
+/* Left section */
+.profile-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.profile-picture {
+  width: 150px;
+  height: 150px;
+  min-width: 150px;
+  min-height: 150px;
+  border-radius: 50%;
+  background-color: #ddd;
+  margin-bottom: 20px;
+  flex-shrink: 0;
+}
+
+.profile-name {
+  font-size: 32px;
+  color: #fff;
+  margin: 0;
+}
+
+.profile-role {
+  font-size: 18px;
+  color: #fff;
+  margin: 5px 0;
+}
+
+.profile-description {
+  font-size: 16px;
+  color: #fff;
+  margin-bottom: 30px;
+}
+
+.profile-btn {
+  padding: 10px 20px;
+  background-color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+}
+
+.logout {
+  margin-top: 20px;
+  max-width: 120px;
+  align-self: center;
+}
+
+/* Right section */
+.profile-right {
+  padding-top: 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  align-items: stretch;
+  justify-content: flex-start;
+}
+
+.action-btn {
+  font-family: 'Poppins', sans-serif;
+  background-color: #fff;
+  padding: 15px;
+  border-radius: 10px;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+/* Scrollable history box */
+.scrollable-box {
+  font-family: 'Poppins', sans-serif;
+  font-size: 16px;
+  background-color: #fff;
+  height: 100px;
+  padding: 15px;
+  border-radius: 10px;
+  overflow-y: auto;
+  align-items: center;
+  justify-content: center;
+  text-align: center
+}
