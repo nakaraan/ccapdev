@@ -1,5 +1,4 @@
 import { useNavigate } from 'react-router-dom';
-import { useParams } from 'react-router-dom';
 import profile from './profile.png';
 import './UserProfile.css';
 import { FaEdit } from "react-icons/fa";

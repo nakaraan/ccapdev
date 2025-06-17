@@ -1,5 +1,4 @@
 import { Table, Button, Popconfirm, message } from 'antd';
-import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import './Tabular.css';
 import { Overlay } from '../components/Overlay';
@@ -93,7 +92,6 @@ const initialData = [
 ];
 
 export default function Reservations() {
-  const navigate = useNavigate();
   const [previewReservation, setPreviewReservation] = useState(null);
   const [data, setData] = useState(initialData);
 

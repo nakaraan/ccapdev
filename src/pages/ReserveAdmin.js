@@ -91,8 +91,8 @@ export default function ReserveAdmin() {
   ];
   const [selectedLab, setSelectedLab] = useState(labs[0] || "");
   const [blockedSeats, setBlockedSeats] = useState(getBlockedSeatsForDate(new Date(2025, 5, 14)));
-  const [reservedSeats, setReservedSeats] = useState([...reservedSeatsDemo]);
-  const [reserverNames, setReserverNames] = useState({ ...reserverNamesDemo });
+  const [reservedSeats] = useState([...reservedSeatsDemo]);
+  /* const [reserverNames, setReserverNames] = useState({ ...reserverNamesDemo }); */
 
   useEffect(() => {
     setSelectedSeatId(null);

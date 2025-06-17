@@ -29,7 +29,6 @@ const aisleStyle = {
 };
 
 export default function AvailabilityPreview({ reservation, onClose }) {
-  const totalSeats = 40;
   const seatsPerRow = 8;
   const rows = 5;
   const aisleAfter = 4; // after seat 4 in each row
