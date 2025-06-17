@@ -1,0 +1,71 @@
+.userprofile-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(4, 21, 39, 1);
+  min-height: 100vh;
+  padding: 40px 20px;
+  font-family: 'Poppins', sans-serif;
+}
+/* Main profile container */
+.profile-page {
+  background-color: #ffffff;
+  border-radius: 15px;
+  padding: 20px;
+  text-align: center;
+  max-width: 700px;
+  width: 100%;
+  font-family: 'Poppins', sans-serif;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Profile image */
+.profile-picture {
+  max-width: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 5px;
+  border: 1px solid #0a2a66;
+}
+
+/* Name and role */
+.username {
+  font-size: 2.0rem;
+  font-weight: bold;
+  margin: 0;
+  color: #0a2a66;
+}
+
+.user-role {
+  font-size: 1rem;
+  color: #666;
+  margin-bottom: 10px;
+}
+
+/* Description box */
+.description-box 
+{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 30px;
+  background-color: #f2f2f2;
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 30px;
+  font-size: 0.95rem;
+  color: #333;
+  max-width: 300px;
+}
+
+/* Reservations box */
+.reservations-box {
+  background-color: #f2f2f2;
+  padding: 15px;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  color: #333;
+  text-align: left;
+  max-width: 600px;
+  margin: 0 auto 30px;
+}
