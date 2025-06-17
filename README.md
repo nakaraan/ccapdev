@@ -2,6 +2,13 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+## How to run
+
+In the command line, run the following:
+### 'npm uninstall react-scripts'
+### 'npm install react-scripts@5.0.1'
+### 'npm install antd'
+
 ## Available Scripts
 
 In the project directory, you can run:
