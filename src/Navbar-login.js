@@ -7,9 +7,9 @@ export default function LNavbar() {
     <nav className="nav">
       <Link to="/" className="site-title">IT Facilities Reservation</Link>
       <ul>
-        <li><Link to="/Home">Home</Link></li>
-        <li><Link to="/Login">Login</Link></li>
-        <li><Link to="/FAQs">FAQs</Link></li>
+        <li style={{ listStyle: 'none' }}><Link to="/Home">Home</Link></li>
+        <li style={{ listStyle: 'none' }}><Link to="/Login">Login</Link></li>
+        <li style={{ listStyle: 'none' }}><Link to="/FAQs">FAQs</Link></li>
       </ul>
     </nav>
   );

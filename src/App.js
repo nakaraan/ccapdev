@@ -5,6 +5,7 @@ import FAQs from "./pages/FAQs";
 import Login from "./pages/Login";
 import Reservations from "./pages/Reservations";
 import Reserve from "./pages/Reserve";
+import ReserveAdmin from "./pages/ReserveAdmin";
 import Settings from "./pages/Settings";
 import ViewUsers from "./pages/ViewUsers";
 import UserProfile from "./pages/UserProfile";
@@ -36,6 +37,7 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/reservations" element={<Reservations />} />
               <Route path="/reserve" element={<Reserve />} />
+              <Route path="/reserve-admin" element={<ReserveAdmin />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/viewusers" element={<ViewUsers />} />
               <Route path="/userprofile" element={<UserProfile />} />

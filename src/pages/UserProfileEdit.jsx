@@ -15,7 +15,7 @@ export default function UserProfileEdit() {
   ]);
 
   function handleImageEdit() {
-    alert('Edit profile image clicked!');
+    alert('Editing profile image!');
   }
 
   function handleSave() {
