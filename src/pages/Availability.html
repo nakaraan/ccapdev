@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Seat Availability</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- Title & Close Button -->
+    <div class="container" role="region" aria-label="Seat Availability Page">
+      <div class="header">
+        <div class="title">Seat Availability</div>
+        <button class="closeBtn" aria-label="Close Seat Availability Page">
+          &times;
+        </button>
+      </div>
+
+      <!-- Date & Arrows -->
+      <div class="date-nav">
+        <button class="date-prev" aria-label="Previous Day">&larr;</button>
+        <div class="date" aria-live="polite" aria-atomic="true"></div>
+        <button class="date-next" aria-label="Next Day">&rarr;</button>
+      </div>
+
+      <div class="seats" aria-label="Seats"></div>
+
+      <!-- Legends -->
+      <div class="legend" aria-label="Seat Legend">
+        <div><span class="legend-box available"></span> Available</div>
+        <div><span class="legend-box reserved"></span> Reserved</div>
+        <div><span class="legend-box blocked"></span> Blocked</div>
+      </div>
+
+      <!-- Data -->
+      <div class="data" style="margin-bottom: 20px; text-align: center">
+        <button id="availableSeatsBtn" style="margin-right: 10px">
+          Show Available Seats
+        </button>
+        <button id="occupantsBtn" style="margin-left: 10px">
+          Show Occupants
+        </button>
+        <div
+          id="infoOutput"
+          style="
+            margin-top: 10px;
+            font-size: 1rem;
+            color: #333;
+            white-space: pre-wrap;
+            white-space: pre-wrap;
+          "
+        ></div>
+      </div>
+
+      <!-- Add & Remove Button | No Seat = Disabled -->
+      <button class="actionBtn" aria-label="Add Selected Seat" disabled>
+        Add
+      </button>
+    </div>
+
+    <script src="Availability.js"></script>
+  </body>
+</html>

@@ -1,0 +1,33 @@
+.nav { /* Top navigation bar */
+  background-color: #00703c;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+  padding: 1rem;
+  width: 100%;
+  position: relative;
+  z-index: 101;
+}
+
+.nav ul {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  display: flex;
+  gap: 1rem;
+}
+
+.nav a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.nav li:hover {
+  background-color: #777;
+}
+
+.nav li.active {
+  background-color: #555;
+}
