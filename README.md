@@ -4,7 +4,7 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 ## How to run
 
-In the command line, run the following:
+In case of errors in compiling, run the following in the command line, run the following:
 ### 'npm uninstall react-scripts'
 ### 'npm install react-scripts@5.0.1'
 ### 'npm install antd'
