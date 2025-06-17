@@ -6,8 +6,9 @@ import Login from "./pages/Login";
 import Reservations from "./pages/Reservations";
 import Reserve from "./pages/Reserve";
 import Profile from "./pages/Profile";
-import Users from "./pages/Users";
 import Settings from "./pages/Settings";
+import ViewUsers from "./pages/ViewUsers";
+import UserProfile from "./pages/UserProfile";
 import { Route, Routes, useLocation } from "react-router-dom";
 
 function App() {
@@ -35,9 +36,9 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/reservations" element={<Reservations />} />
               <Route path="/reserve" element={<Reserve />} />
-              <Route path="/users" element={<Users />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/Settings" element={<Settings />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/viewusers" element={<ViewUsers />} />
+              <Route path="/userprofile" element={<UserProfile />} />
             </Routes>
           </div>
         </div>

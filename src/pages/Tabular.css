@@ -1,0 +1,15 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
+
+body {
+  font-family: 'Poppins', sans-serif;
+}
+
+.clickable-row {
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.clickable-row:hover {
+  background-color: #e6f7ff !important;
+}

@@ -5,8 +5,7 @@ export default function Login() {
 
   function handleSubmit(e) {
     e.preventDefault();
-    // Perform login logic here if needed
-    navigate("/home"); // Redirect to home page after login
+    navigate("/home"); 
   }
 
   return (
