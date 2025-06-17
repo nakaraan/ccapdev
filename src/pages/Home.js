@@ -26,7 +26,7 @@ export default function Home() {
           <Link to="/faqs">FAQs</Link>
         </li>
         <li>
-          <Link to="/viewusers">View Users</Link>
+          <Link to="/viewusers">View Users (Search for Users)</Link>
         </li>
         <li>
           <Link to="/reservations">Reservations (View | Edit | Delete)</Link>
