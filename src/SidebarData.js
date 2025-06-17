@@ -12,8 +12,14 @@ export const SidebarData = [
   },
   {
     title: 'Users',
-    path: '/users',
+    path: '/viewusers',
     icon: <FaIcons.FaUsers />,
+    cName: 'nav-text'
+  },
+  {
+    title: 'Booking',
+    path: '/reserve',
+    icon: <FaIcons.FaBook />,
     cName: 'nav-text'
   },
   {
@@ -24,13 +30,13 @@ export const SidebarData = [
   },
   {
     title: 'Profile',
-    path: '/profile',
+    path: '/userprofile',
     icon: <FaIcons.FaUser />,
     cName: 'nav-text'
   },
   {
     title: 'Settings',
-    path: '/',
+    path: '/settings',
     icon: <IoIcons.IoIosSettings />,
     cName: 'nav-text'
   },

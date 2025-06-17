@@ -5,7 +5,7 @@ export default function LNavbar() {
   const path = window.location.pathname;
   return (
     <nav className="nav">
-      <Link to="/" className="site-title">Lab Reservation</Link>
+      <Link to="/" className="site-title">IT Facilities Reservation</Link>
       <ul>
         <li><Link to="/Home">Home</Link></li>
         <li><Link to="/Login">Login</Link></li>
