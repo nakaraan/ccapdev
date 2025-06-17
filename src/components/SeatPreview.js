@@ -2,7 +2,7 @@ import React from "react";
 
 const seatGridStyle = {
   display: "grid",
-  gridTemplateColumns: "repeat(8, 32px)",
+  gridTemplateColumns: "repeat(9, 32px)", // 8 seats + 1 aisle
   gap: "8px",
   margin: "16px 0",
   justifyContent: "center",
@@ -21,9 +21,43 @@ const seatStyle = (isSelected) => ({
   border: isSelected ? "2px solid #00703c" : "1px solid #ccc",
 });
 
+const aisleStyle = {
+  width: "1rem",
+  height: 32,
+  background: "transparent",
+  gridColumn: "auto",
+};
+
 export default function AvailabilityPreview({ reservation, onClose }) {
-  const totalSeats = 16;
-  const selectedSeat = Number(reservation.seat);
+  const totalSeats = 40;
+  const seatsPerRow = 8;
+  const rows = 5;
+  const aisleAfter = 4; // after seat 4 in each row
+
+  // Build grid with aisle
+  const gridItems = [];
+  let seatNum = 1;
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < seatsPerRow + 1; col++) {
+      if (col === aisleAfter) {
+        // Insert aisle
+        gridItems.push(
+          <div key={`aisle-${row}`} style={aisleStyle} />
+        );
+      } else {
+        gridItems.push(
+          <div
+            key={seatNum}
+            style={seatStyle(seatNum === Number(reservation.seat))}
+            title={seatNum === Number(reservation.seat) ? "Your reserved seat" : ""}
+          >
+            {seatNum}
+          </div>
+        );
+        seatNum++;
+      }
+    }
+  }
 
   return (
     <div style={{ minWidth: 350, padding: 16 }}>
@@ -34,15 +68,7 @@ export default function AvailabilityPreview({ reservation, onClose }) {
         <strong>Lab:</strong> {reservation.lab}
       </div>
       <div style={seatGridStyle}>
-        {Array.from({ length: totalSeats }, (_, i) => (
-          <div
-            key={i + 1}
-            style={seatStyle(i + 1 === selectedSeat)}
-            title={i + 1 === selectedSeat ? "Your reserved seat" : ""}
-          >
-            {i + 1}
-          </div>
-        ))}
+        {gridItems}
       </div>
       <div style={{ textAlign: "right" }}>
         <button

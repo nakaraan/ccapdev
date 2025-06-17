@@ -11,6 +11,7 @@
 }
 
 .menu-bars {
+  margin-top: 0.4rem;
   margin-left: 2rem;
   font-size: 2rem;
   background: none;
@@ -69,7 +70,7 @@
 
 .navbar-toggle {
   background-color: #00703c;
-  width: 100%;
+  width: 90%;
   height: 80px;
   display: flex;
   justify-content: start;

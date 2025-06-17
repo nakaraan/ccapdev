@@ -17,6 +17,12 @@ export const SidebarData = [
     cName: 'nav-text'
   },
   {
+    title: 'Booking',
+    path: '/reserve',
+    icon: <FaIcons.FaBook />,
+    cName: 'nav-text'
+  },
+  {
     title: 'Reservations',
     path: '/reservations',
     icon: <FaIcons.FaCalendarAlt />,

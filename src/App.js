@@ -5,10 +5,10 @@ import FAQs from "./pages/FAQs";
 import Login from "./pages/Login";
 import Reservations from "./pages/Reservations";
 import Reserve from "./pages/Reserve";
-import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import ViewUsers from "./pages/ViewUsers";
 import UserProfile from "./pages/UserProfile";
+import ProfileEdit from "./pages/UserProfileEdit";
 import { Route, Routes, useLocation } from "react-router-dom";
 
 function App() {
@@ -39,6 +39,7 @@ function App() {
               <Route path="/settings" element={<Settings />} />
               <Route path="/viewusers" element={<ViewUsers />} />
               <Route path="/userprofile" element={<UserProfile />} />
+              <Route path="/userprofile-edit" element={<ProfileEdit />} />
             </Routes>
           </div>
         </div>

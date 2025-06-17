@@ -1,73 +1,68 @@
-// src/pages/ViewUsers.jsx
-import { Input, Table, Button } from 'antd';
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import './Tabular.css';
+import React, { useState } from "react";
+import { Table } from "antd";
+import ProfileOverlay from "../components/ProfileOverlay";
+import "./Tabular.css"; // Import the tabular styles
 
-const { Search } = Input;
-
-const columns = [
-  { title: 'Username', dataIndex: 'username', key: 'username' },
-  { title: 'ID Number', dataIndex: 'id', key: 'id' },
-  { title: 'Last Logged In', dataIndex: 'lastLogin', key: 'lastLogin' },
-  { title: 'Section', dataIndex: 'section', key: 'section' },
-  { title: 'Role', dataIndex: 'role', key: 'role' },
-];
-
-// sample data
-const data = [
+const users = [
   {
-    key: '1',
-    username: 'juan_cruz',
-    id: '12323456',
-    lastLogin: '2025-06-17',
-    section: 'S12A',
-    role: 'Student',
+    key: "1",
+    name: "Juan Dela Cruz",
+    role: "Student",
+    description: "College of Computer Studies Powerhouse.",
+    idNumber: "12323456",
+    lastLoggedIn: "2025-06-17",
+    section: "S12A",
+  },
+  {
+    key: "2",
+    name: "Maria Santos",
+    role: "Admin",
+    description: "System administrator and faculty.",
+    idNumber: "65432123",
+    lastLoggedIn: "2025-06-15",
+    section: "Admin",
   },
 ];
 
-function ViewUsers() {
-  const [filteredData, setFilteredData] = useState(data);
-  const navigate = useNavigate();
+const columns = [
+  { title: "Username", dataIndex: "name", key: "name" },
+  { title: "ID Number", dataIndex: "idNumber", key: "idNumber" },
+  { title: "Last Logged In", dataIndex: "lastLoggedIn", key: "lastLoggedIn" },
+  { title: "Section", dataIndex: "section", key: "section" },
+  { title: "Role", dataIndex: "role", key: "role" },
+];
 
-  const onSearch = (value) => {
-    const lower = value.toLowerCase();
-    const filtered = data.filter((item) =>
-      Object.values(item).some(val =>
-        String(val).toLowerCase().includes(lower)
-      )
-    );
-    setFilteredData(filtered);
+export default function ViewUsers() {
+  const [selectedUser, setSelectedUser] = useState(null);
+
+  const handleShowReservations = () => {
+    alert(`Show reservations for ${selectedUser.name}`);
   };
-
-  const handleRowClick = (record) => {
-    navigate(`/users/${record.id}`);
+  const handleEditReservations = () => {
+    alert(`Edit reservations for ${selectedUser.name}`);
   };
 
   return (
-    <div style={{ padding: '20px', fontFamily: 'Poppins, sans-serif' }}>
-    <Search
-      placeholder="Search"
-      allowClear
-      enterButton={
-        <Button style={{ backgroundColor: '#00703c', color: '#fff' }}>
-          Search
-        </Button>
-      }
-      onSearch={onSearch}
-      style={{ marginBottom: 16, maxWidth: 300 }}
-    />
+    <div className="tabular-container">
       <Table
         columns={columns}
-        dataSource={filteredData}
-        onRow={(record) => ({
-          onClick: () => handleRowClick(record),
+        dataSource={users}
+        onRow={record => ({
+          onClick: () => setSelectedUser(record),
+          style: { cursor: "pointer" },
         })}
-        rowClassName={() => 'clickable-row'}
         pagination={false}
+        rowClassName={() => "clickable-row"}
+        className="tabular-table"
       />
+      {selectedUser && (
+        <ProfileOverlay
+          user={selectedUser}
+          onClose={() => setSelectedUser(null)}
+          onShowReservations={handleShowReservations}
+          onEditReservations={handleEditReservations}
+        />
+      )}
     </div>
   );
 }
-
-export default ViewUsers;
