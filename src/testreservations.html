@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Reservations</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet"/>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background-color: #f5f7fa;
+      color: #333;
+    }
+
+    header {
+      background-color: #2b4eff;
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      font-size: 1.5rem;
+    }
+
+    nav a {
+      color: white;
+      margin-left: 1.5rem;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.05);
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      color: #2b4eff;
+    }
+
+    .reservation {
+      border-bottom: 1px solid #e0e0e0;
+      padding: 1rem 0;
+    }
+
+    .reservation:last-child {
+      border-bottom: none;
+    }
+
+    .reservation strong {
+      color: #2b4eff;
+    }
+
+    footer {
+      text-align: center;
+      padding: 1rem;
+      color: #777;
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>University Lab Reservation</h1>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="reservations.html">My Reservations</a>
+      <a href="#">Help</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <h2>My Reservations</h2>
+    <!-- Sample static reservations -->
+    <div class="reservation">
+      <p><strong>Date:</strong> June 18, 2025</p>
+      <p><strong>Lab:</strong> Computer Lab A</p>
+      <p><strong>Seat:</strong> 3</p>
+    </div>
+    <div class="reservation">
+      <p><strong>Date:</strong> June 20, 2025</p>
+      <p><strong>Lab:</strong> Computer Lab B</p>
+      <p><strong>Seat:</strong> 6</p>
+    </div>
+    <!-- Future enhancement: dynamically fetch user reservations -->
+  </div>
+
+  <footer>
+    &copy; 2025 University IT Department. All rights reserved.
+  </footer>
+</body>
+</html>
