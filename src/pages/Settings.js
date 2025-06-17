@@ -1,16 +1,18 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function ProfileSettings() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+   const navigate = useNavigate();
 
   const handleLogout = () => {
-    // Insert your logout logic here
+    navigate("/");
     console.log("User logged out.");
   };
 
   const handleDelete = () => {
     setShowDeleteModal(false);
-    console.log("Account deletion confirmed (hypothetical, no action taken).");
+    console.log("Account deletion confirmed.");
   };
 
   return (
