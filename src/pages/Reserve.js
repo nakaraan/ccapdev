@@ -490,7 +490,7 @@ export default function Reserve() {
             <span style={legendBoxStyle("#f44336")}></span> Reserved
           </div>
           <div>
-            <span style={legendBoxStyle("#ccc")}></span> Blocked
+            <span style={legendBoxStyle("#000000")}></span> Blocked
           </div>
         </div>
 

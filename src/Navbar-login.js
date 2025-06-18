@@ -1,11 +1,11 @@
-import { Link, useResolvedPath, useMatch } from "react-router-dom"
+import { Link } from "react-router-dom"
 import './Navbar-login.css';
 
 export default function LNavbar() {
-  const path = window.location.pathname;
+  /* const path = window.location.pathname; */
   return (
     <nav className="nav">
-      <Link to="/" className="site-title">IT Facilities Reservation</Link>
+      <Link to="/" className="site-title">Computer Lab Reservation</Link>
       <ul>
         <li style={{ listStyle: 'none' }}><Link to="/Home">Home</Link></li>
         <li style={{ listStyle: 'none' }}><Link to="/Login">Login</Link></li>
@@ -15,6 +15,7 @@ export default function LNavbar() {
   );
 }
 
+/*
 function CustomLink({ to, children, ...props}) {
   const resolvedPath = useResolvedPath(to)
   const isActive = useMatch({ path: resolvedPath.pathname, end: true })
@@ -23,4 +24,4 @@ function CustomLink({ to, children, ...props}) {
       <Link to={to} {...props}>{children}</Link>
     </li>
   )
-}
+} */

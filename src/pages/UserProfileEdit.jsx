@@ -6,7 +6,7 @@ export default function UserProfileEdit() {
   const [name, setName] = useState('Name');
   const [role, setRole] = useState('Student');
   const [description, setDescription] = useState('Description');
-  const [reservations, setReservations] = useState([
+  const [reservations] = useState([
     'GK302A – June 20, 2025 | 0730 - 1000',
     'GK302B – July 4, 2025 | 1230 - 1415',
     'AG1707 – July 21, 2025 | 0900 - 1030',
