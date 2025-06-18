@@ -7,8 +7,7 @@ export function Overlay({ isOpen, onClose, children}) {
   useEffect(() => {
     if (isOpen) setShow(true);
     else {
-      // Wait for fade-out before removing from DOM
-      const timeout = setTimeout(() => setShow(false), 300); // match CSS duration
+      const timeout = setTimeout(() => setShow(false), 300);
       return () => clearTimeout(timeout);
     }
   }, [isOpen]);

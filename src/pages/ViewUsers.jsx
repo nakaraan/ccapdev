@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Table } from "antd";
 import ProfileOverlay from "../components/ProfileOverlay";
-import "./Tabular.css"; // Import the tabular styles
+import "./Tabular.css";
 
 const users = [
   {

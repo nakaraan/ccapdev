@@ -3,6 +3,7 @@ import Navbar from "./Navbar";
 import Home from "./pages/Home";
 import FAQs from "./pages/FAQs";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 import Reservations from "./pages/Reservations";
 import Reserve from "./pages/Reserve";
 import ReserveAdmin from "./pages/ReserveAdmin";
@@ -15,15 +16,20 @@ import { Route, Routes, useLocation } from "react-router-dom";
 function App() {
   const location = useLocation();
   const isLogin = location.pathname === "/";
+  const isFAQs = location.pathname === "/faqs";
+  const isRegister = location.pathname === "/register";
 
   return (
     <>
-      {isLogin ? (
+      {(isLogin || isFAQs || isRegister) ? (
         <>
           <LNavbar />
           <div className="container">
             <Routes>
               <Route path="/" element={<Login />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/faqs" element={<FAQs />} />
+              <Route path="/register" element={<Register />} />
             </Routes>
           </div>
         </>
@@ -33,8 +39,6 @@ function App() {
           <div className="container" style={{ width: "100%" }}>
             <Routes>
               <Route path="/home" element={<Home />} />
-              <Route path="/faqs" element={<FAQs />} />
-              <Route path="/login" element={<Login />} />
               <Route path="/reservations" element={<Reservations />} />
               <Route path="/reserve" element={<Reserve />} />
               <Route path="/reserve-admin" element={<ReserveAdmin />} />

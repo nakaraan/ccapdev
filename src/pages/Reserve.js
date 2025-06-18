@@ -381,10 +381,10 @@ export default function Reserve() {
               padding: "6px 16px",
               color: "#00703c",
               background: "#f5f5f5",
-              width: "100%",      // <-- Make select stretch
+              width: "100%", 
               textAlign: "center",
               outline: "none",
-              flex: 1,            // <-- Also works with flex
+              flex: 1,
             }}
           >
             {labs.map(lab => (

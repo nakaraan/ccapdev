@@ -3,7 +3,6 @@ import profile from './profile.png';
 import './UserProfile.css';
 
 export default function UserProfileEdit() {
-  // Example state; replace with real user data as needed
   const [name, setName] = useState('Name');
   const [role, setRole] = useState('Student');
   const [description, setDescription] = useState('Description');
@@ -20,7 +19,6 @@ export default function UserProfileEdit() {
 
   function handleSave() {
     alert('Profile saved!');
-    // Implement save logic here
   }
 
   return (

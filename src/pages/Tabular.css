@@ -14,8 +14,6 @@ body {
   background-color: #e6f7ff !important;
 }
 
-
-/* Overlay background */
 .tabular-overlay-bg {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -26,7 +24,6 @@ body {
   justify-content: center;
 }
 
-/* Overlay card */
 .tabular-overlay-card {
   background: #fff;
   border-radius: 18px;

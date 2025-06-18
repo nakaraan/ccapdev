@@ -20,7 +20,7 @@ li::marker {
   margin-top: 0;
   font-family: 'Poppins', sans-serif;
 }
-/* Main profile container */
+
 .profile-page {
   background-color: #ffffff;
   border-radius: 15px;
@@ -32,7 +32,6 @@ li::marker {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
-/* Profile image */
 .profile-picture {
   max-width: 100px;
   border-radius: 50%;
@@ -42,7 +41,6 @@ li::marker {
   border: 1px solid #ebebeb;
 }
 
-/* Name and role */
 .username {
   font-size: 2.0rem;
   font-weight: bold;
@@ -56,7 +54,6 @@ li::marker {
   margin-bottom: 10px;
 }
 
-/* Description box */
 .description-box 
 {
   display: flex;
@@ -71,13 +68,10 @@ li::marker {
   margin-bottom: 30px;
   font-size: 0.95rem;
   color: #333;
-  /* Remove or comment out the next line: */
-  /* max-width: 300px; */
   width: 100%;
   box-sizing: border-box;
 }
 
-/* Reservations box */
 .reservations-box {
   background-color: #f2f2f2;
   padding: 15px;

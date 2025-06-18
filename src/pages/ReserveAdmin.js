@@ -36,7 +36,6 @@ function getOccupantName(date, seatId) {
   return localStorage.getItem(`occupant_${getStorageKey(date)}_${seatId}`);
 }
 
-// --- Blocked seats logic ---
 function getBlockedSeatsKey(date) {
   return 'blockedSeats_' + date.toISOString().slice(0, 10);
 }
@@ -252,7 +251,6 @@ export default function ReserveAdmin() {
     return 'false';
   }
 
-  // Overlay-style card container
   const cardStyle = {
     background: "#fff",
     borderRadius: 18,
