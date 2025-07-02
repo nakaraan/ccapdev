@@ -1,15 +1,7 @@
 import { useNavigate, Link } from "react-router-dom";
 import { useState } from "react";
 import { useUser } from "./UserContext";
-
-const USERS = [
-  { id: "12345678", password: "password", name: "Juan Dela Cruz", role: "Student" },
-  { id: "12312312", password: "password", name: "Carlos Yulo", role: "Student" },
-  { id: "12341234", password: "password", name: "Jose Rizal", role: "Student" },
-  { id: "12121212", password: "password", name: "Andres Bonifacio", role: "Student" },
-  { id: "12344321", password: "password", name: "Emilio Aguinaldo", role: "Student" },
-  { id: "ADMIN", password: "ADMIN", name: "Admin", role: "Admin" }
-];
+import { loginUser } from "./api"; // <-- You need to add this function in your api.js
 
 export default function Login() {
   const navigate = useNavigate();
@@ -18,14 +10,16 @@ export default function Login() {
   const [pw, setPw] = useState("");
   const [error, setError] = useState("");
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    const found = USERS.find(u => u.id === id && u.password === pw);
-    if (found) {
-      setUser(found);
+    console.log("Login submitted with ID:", id, "and Password:", pw);
+    try {
+      const user = await loginUser({ user_id: String(id), user_password: String(pw) });
+      setUser(user);
       navigate("/home");
-    } else {
+    } catch (err) {
       setError("Invalid ID or password.");
+      console.log(err)
     }
   }
 

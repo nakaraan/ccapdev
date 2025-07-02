@@ -1,5 +1,6 @@
 import { useNavigate, Link } from "react-router-dom";
 import { useState } from "react";
+import { registerUser, getUsers } from "./api";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -11,29 +12,34 @@ export default function Register() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     if (!firstName || !lastName || !idNumber || !email || !pw) {
       setError("All fields are required.");
       setSuccess("");
       return;
     }
-    // Check if user already exists in localStorage
-    const users = JSON.parse(localStorage.getItem("registeredUsers") || "[]");
-    if (users.find(u => u.idNumber === idNumber || u.email === email)) {
+
+    // Fetch all users from MongoDB
+    const users = await getUsers();
+    if (users && users.find(u => u.user_id === idNumber || u.email_address === email)) {
       setError("ID number or email already exists.");
       setSuccess("");
       return;
     }
-    // Save new user
-    users.push({
-      firstName,
-      lastName,
-      idNumber,
-      email,
-      password: pw
-    });
-    localStorage.setItem("registeredUsers", JSON.stringify(users));
+
+    // Register user in MongoDB
+    let submitObject = {
+      user_id: idNumber,
+      first_name: firstName,
+      last_name: lastName,
+      user_password: pw,
+      user_role: "Student",
+      email_address: email,
+      user_description: ""
+    };
+
+    await registerUser(submitObject);
     setSuccess("Registration successful! You may now log in.");
     setError("");
     setTimeout(() => navigate("/"), 1200);
@@ -49,6 +55,7 @@ export default function Register() {
           className="login-input"
           value={firstName}
           onChange={e => setFirstName(e.target.value)}
+          maxLength={20}
         /><br />
         Last Name <br />
         <input
@@ -56,6 +63,7 @@ export default function Register() {
           className="login-input"
           value={lastName}
           onChange={e => setLastName(e.target.value)}
+          maxLength={20}
         /><br />
         ID Number <br />
         <input
@@ -63,6 +71,7 @@ export default function Register() {
           className="login-input"
           value={idNumber}
           onChange={e => setIdNumber(e.target.value)}
+          maxLength={8}
         /><br />
         Email Address <br />
         <input
@@ -70,6 +79,7 @@ export default function Register() {
           className="login-input"
           value={email}
           onChange={e => setEmail(e.target.value)}
+          maxLength={50}
         /><br />
         Password <br />
         <input
@@ -77,6 +87,7 @@ export default function Register() {
           className="login-input"
           value={pw}
           onChange={e => setPw(e.target.value)}
+          maxLength={50}
         /><br />
         <button className="login-button" type="submit">Register</button>
         {error && <div style={{ color: "red", marginTop: 8 }}>{error}</div>}

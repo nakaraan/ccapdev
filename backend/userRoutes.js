@@ -4,20 +4,20 @@
     base route + backend route -> 1 function each only -> returns response to front end
 */
 
-const express = require("express")
-const database = require("./connect")
-const ObjectID = require("mongodb").ObjectID
+const express = require("express");
+const database = require("./connect");
+const ObjectId = require("mongodb").ObjectId;
 
 let userRoutes = express.Router() // express router object
 
 // retrieve all 
 userRoutes.route("/users").get(async (request, response) => { // request from front end, response is from back end
     let db = database.getDb() // connects to data base
-    let data = await db.collection("users").find({}).toArray() 
+    let data = await db.collection("users").find({}).toArray();
     if (data.length > 0) {
-        response.json(data)
+        response.json(data);
     } else {
-        throw new Error("Data was not found.")
+        throw new Error("Data was not found.");
     }
 }) // returns mongo cursor in array
 
@@ -32,9 +32,37 @@ userRoutes.route("/users/:id").get(async (request, response) => { // request fro
     }
 }) // return direct object
 
+// login user
+userRoutes.route("/users/login").post(async (request, response) => {
+    let db = database.getDb();
+    const { user_id, user_password } = request.body;
+    console.log("Login attempt:", { user_id, user_password }); // Debug log
+    const user = await db.collection("users").findOne({
+        user_id: user_id,
+        user_password: user_password
+    });
+    console.log("User found:", user); // Debug log
+    if (user) {
+        response.json(user);
+    } else {
+        response.status(401).json({ error: "Invalid credentials" });
+    }
+});
+
 // register user
-userRoutes.route("/users").post(async (request, response) => { // request from front end, response is from back end
-    let db = database.getDb() // connects to data base
+userRoutes.route("/users").post(async (request, response) => {
+    let db = database.getDb();
+    // Check for duplicate user_id or email_address
+    const exists = await db.collection("users").findOne({
+        $or: [
+            { user_id: request.body.user_id },
+            { email_address: request.body.email_address }
+        ]
+    });
+    if (exists) {
+        response.status(409).json({ error: "User ID or email already exists" });
+        return;
+    }
     let mongoObject = {
         user_id: request.body.user_id,
         first_name: request.body.first_name,
@@ -46,7 +74,7 @@ userRoutes.route("/users").post(async (request, response) => { // request from f
     }
     let data = await db.collection("users").insertOne(mongoObject)
     response.json(data)
-}) 
+})
 
 // update user
 userRoutes.route("/users/:id").put(async (request, response) => { // request from front end, response is from back end
@@ -62,7 +90,7 @@ userRoutes.route("/users/:id").put(async (request, response) => { // request fro
             user_description: request.body.user_description
         }
     }
-    let data = await db.collection("users").updateOne({_id: new ObjectID(request.params.id)}, mongoObject)
+    let data = await db.collection("users").updateOne({_id: new ObjectId(request.params.id)}, mongoObject)
     response.json(data)
 }) 
 
