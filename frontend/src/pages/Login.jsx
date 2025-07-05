@@ -17,6 +17,7 @@ export default function Login() {
       const user = await loginUser({ user_id: String(id), user_password: String(pw) });
       setUser(user);
       navigate("/home");
+      sessionStorage.setItem("User", user._id)
     } catch (err) {
       setError("Invalid ID or password.");
       console.log(err)

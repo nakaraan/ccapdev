@@ -1,23 +1,30 @@
 import { useNavigate } from 'react-router-dom';
 import { useUser } from './UserContext';
+import { useState, useEffect } from "react"
 import profile from './profile.png';
 import './UserProfile.css';
 import { FaEdit } from "react-icons/fa";
+import { getUser } from "./api";
 
 function UserProfile() {
   const navigate = useNavigate();
-  const { user } = useUser();
+  const [user, setUser] = useState({})
 
-  const description =
-    user?.description ||
-    "No description set. Edit your profile to add a description.";
-  const reservations = user?.reservations || [
-    'GK302A – June 20, 2025 | 0730 - 1000',
-    'GK302B – July 4, 2025 | 1230 - 1415',
-    'AG1707 – July 21, 2025 | 0900 - 1030',
-    'AG1902 – July 29, 2025 | 1600 - 1830',
-  ];
+  useEffect(() => {
+    async function loadUserData() {
+      try {
+        const token = sessionStorage.getItem("User")
+        const user = await getUser(token)
+        setUser(user)
+      } catch (err) {
+        console.error("Error fetching user data: ", err);
+      }
+    }
 
+    loadUserData()
+  }, [])
+
+  // Edit
   if (!user) {
     return (
       <div className="userprofile-container">
@@ -35,7 +42,7 @@ function UserProfile() {
   return (
     <div className="userprofile-container">
       <div className="profile-page">
-        <p className="id-holder">VIEWING USER WITH ID: {user.id}</p>
+        <p className="id-holder">VIEWING USER WITH ID: {user.user_id}</p>
         <img
           src={profile}
           className="profile-picture large"
@@ -51,8 +58,8 @@ function UserProfile() {
             border: "1px solid #ebebeb"
           }}
         />
-        <h2 className="username">{user.name}</h2>
-        <p className="user-role">{user.role}</p>
+        <h2 className="username">{user.first_name} {user.last_name}</h2>
+        <p className="user-role">{user.user_role}</p>
         <div
           style={{
             display: "flex",
@@ -75,7 +82,7 @@ function UserProfile() {
               border: "1px solid #e0e0e0",
             }}
           >
-            {description}
+            {user.user_description}
           </div>
           <button
             onClick={handleEditProfile}
@@ -91,14 +98,6 @@ function UserProfile() {
           >
             <FaEdit size={30} style={{ marginLeft: "10px", marginBottom: "10px" }} color="#00703c" />
           </button>
-        </div>
-        <div className="reservations-box">
-          <strong>Current Reservations:</strong>
-          <ul>
-            {reservations.map((r, i) => (
-              <li key={i}>{r}</li>
-            ))}
-          </ul>
         </div>
       </div>
     </div>

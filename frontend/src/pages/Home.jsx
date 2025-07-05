@@ -31,7 +31,7 @@ export default function Home() {
           padding: 0,
           margin: 0
         }}
-      >
+      > 
         <li>
           <Link to="/home">Home (this page)</Link>
         </li>
