@@ -27,7 +27,7 @@ reservationRoutes.route("/reservations").get(async (req, res) => { // req from f
     }
     
     // Students can only see their own reservations
-    if (req.user.role === 'student') {
+    if (req.user.role === 'Student') {
       filter.user = req.user.id;
     }
 
@@ -59,12 +59,12 @@ reservationRoutes.route("/reservations").post(async (req, res) => {
     const { labId, startTime, endTime, status, userId } = req.body;
     
     // If technician is reserving for a student
-    const reservedFor = req.user.role === 'technician' && userId ? userId : req.user.id;
+    const reservedFor = req.user.role === 'Admin' && userId ? userId : req.user.id;
     
     const reservation = new Reservation({
       lab: labId,
       user: reservedFor,
-      reservedBy: req.user.role === 'technician' ? req.user.id : null,
+      reservedBy: req.user.role === 'Admin' ? req.user.id : null,
       startTime,
       endTime,
       status
@@ -86,12 +86,12 @@ reservationRoutes.route("/reservations/:id").put(async (req, res) => { // req fr
     const reservation = await Reservation.findById(id);
     
     // Check permissions
-    if (req.user.role === 'student' && reservation.user.toString() !== req.user.id) {
+    if (req.user.role === 'Student' && reservation.user.toString() !== req.user.id) {
       return res.status(403).json({ error: 'Not authorized to update this reservation' });
     }
     
     // Prevent updating certain fields for students
-    if (req.user.role === 'student') {
+    if (req.user.role === 'Student') {
       delete updates.status; // Students can't change status
       delete updates.user;  // Students can't change who it's for
     }
@@ -110,7 +110,7 @@ reservationRoutes.route("/reservations/:id").delete(async (request, response) =>
     const reservation = await Reservation.findById(id);
     
     // Check permissions
-    if (req.user.role === 'student' && reservation.user.toString() !== req.user.id) {
+    if (req.user.role === 'Student' && reservation.user.toString() !== req.user.id) {
       return res.status(403).json({ error: 'Not authorized to delete this reservation' });
     }
     

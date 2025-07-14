@@ -12,6 +12,15 @@ const reserverNamesDemo = {
   S33: 'Gutierrez',
 };
 
+// Time slots configuration
+const startHour = 8; // 8 AM
+const endHour = 18; // 6 PM
+const timeSlots = [];
+for (let hour = startHour; hour < endHour; hour++) {
+  timeSlots.push(`${hour}:00 - ${hour}:30`);
+  timeSlots.push(`${hour}:30 - ${hour + 1}:00`);
+}
+
 function getStorageKey(date) {
   return 'addedSeat_' + date.toISOString().slice(0, 10);
 }
@@ -34,6 +43,18 @@ function setOccupantName(date, seatId, name) {
 }
 function getOccupantName(date, seatId) {
   return localStorage.getItem(`occupant_${getStorageKey(date)}_${seatId}`);
+}
+
+// Time slot storage functions
+function setReservationTime(date, seatId, time) {
+  if (time) {
+    localStorage.setItem(`time_${getStorageKey(date)}_${seatId}`, time);
+  } else {
+    localStorage.removeItem(`time_${getStorageKey(date)}_${seatId}`);
+  }
+}
+function getReservationTime(date, seatId) {
+  return localStorage.getItem(`time_${getStorageKey(date)}_${seatId}`);
 }
 
 function getBlockedSeatsKey(date) {
@@ -76,6 +97,9 @@ export default function ReserveAdmin() {
   const [selectedSeatId, setSelectedSeatId] = useState(null);
   const [addedSeatId, setAddedSeatId] = useState(() => getAddedSeatForDate(new Date(2025, 5, 14)));
   const [infoOutput, setInfoOutput] = useState('');
+  const [isAnonymous, setIsAnonymous] = useState(false);
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState(timeSlots[0]);
+  
   const labs = [
     "GK210",
     "GK304A",
@@ -91,7 +115,6 @@ export default function ReserveAdmin() {
   const [selectedLab, setSelectedLab] = useState(labs[0] || "");
   const [blockedSeats, setBlockedSeats] = useState(getBlockedSeatsForDate(new Date(2025, 5, 14)));
   const [reservedSeats] = useState([...reservedSeatsDemo]);
-  /* const [reserverNames, setReserverNames] = useState({ ...reserverNamesDemo }); */
 
   useEffect(() => {
     setSelectedSeatId(null);
@@ -139,12 +162,18 @@ export default function ReserveAdmin() {
       alert('Please select a seat first.');
       return;
     }
-    // Add/Reserve: prompt for name, remove block if present, add reservation
-    const occupantName = prompt('Enter Name for Reservation:');
-    if (!occupantName || occupantName.trim() === '') {
-      alert('Name is required.');
-      return;
+    
+    let occupantName;
+    if (!isAnonymous) {
+      occupantName = prompt('Enter Name for Reservation:');
+      if (!occupantName || occupantName.trim() === '') {
+        alert('Name is required.');
+        return;
+      }
+    } else {
+      occupantName = "Anonymous";
     }
+    
     // Remove block if present
     if (isBlocked(selectedSeatId)) {
       removeBlockedSeat(currentDate, selectedSeatId);
@@ -153,6 +182,7 @@ export default function ReserveAdmin() {
     // Add reservation
     setAddedSeatForDate(currentDate, selectedSeatId);
     setOccupantName(currentDate, selectedSeatId, occupantName);
+    setReservationTime(currentDate, selectedSeatId, selectedTimeSlot);
     setAddedSeatId(selectedSeatId);
     setSelectedSeatId(null);
     setInfoOutput('');
@@ -167,6 +197,7 @@ export default function ReserveAdmin() {
     if (isReserved(selectedSeatId)) {
       setAddedSeatForDate(currentDate, null);
       setOccupantName(currentDate, selectedSeatId, null);
+      setReservationTime(currentDate, selectedSeatId, null);
       setAddedSeatId(null);
     }
     // Add block
@@ -191,6 +222,7 @@ export default function ReserveAdmin() {
       // Remove reservation
       setAddedSeatForDate(currentDate, null);
       setOccupantName(currentDate, selectedSeatId, null);
+      setReservationTime(currentDate, selectedSeatId, null);
       setAddedSeatId(null);
       setSelectedSeatId(null);
       setInfoOutput('');
@@ -223,16 +255,25 @@ export default function ReserveAdmin() {
   function onShowOccupants() {
     const occupants = [];
     reservedSeatsDemo.forEach((seatId) => {
-      occupants.push({ seatId, name: reserverNamesDemo[seatId] || 'Unknown' });
+      occupants.push({ 
+        seatId, 
+        name: reserverNamesDemo[seatId] || 'Unknown',
+        time: 'All day' // Default for reserved seats
+      });
     });
     if (addedSeatId) {
       const occupantName = getOccupantName(currentDate, addedSeatId) || 'Unknown';
-      occupants.push({ seatId: addedSeatId, name: occupantName });
+      const timeSlot = getReservationTime(currentDate, addedSeatId) || 'Time not specified';
+      occupants.push({ 
+        seatId: addedSeatId, 
+        name: occupantName,
+        time: timeSlot
+      });
     }
     if (occupants.length === 0) {
       setInfoOutput(`No Occupants For ${formatDate(currentDate)}.`);
     } else {
-      const list = occupants.map((o) => `Seat ${o.seatId}: ${o.name}`).join('\n');
+      const list = occupants.map((o) => `Seat ${o.seatId}: ${o.name} (${o.time})`).join('\n');
       setInfoOutput(`Occupants For ${formatDate(currentDate)}:\n${list}`);
     }
   }
@@ -402,6 +443,29 @@ export default function ReserveAdmin() {
     minHeight: 24,
   };
 
+  const checkboxStyle = {
+    margin: "12px 0",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "8px",
+  };
+
+  const timeSlotStyle = {
+    margin: "12px 0",
+    width: "100%",
+  };
+
+  const timeSelectStyle = {
+    width: "100%",
+    padding: "8px",
+    borderRadius: "6px",
+    border: "1px solid #ccc",
+    fontSize: "1rem",
+    color: "#00703c",
+    background: "#f5f5f5",
+  };
+
   return (
     <div style={{ minHeight: "100vh", background: "#f5f7fa", padding: 0, margin: 0 }}>
       <div style={cardStyle}>
@@ -468,6 +532,30 @@ export default function ReserveAdmin() {
           </select>
         </div>
 
+        {/* Time slot selection */}
+        <div style={timeSlotStyle}>
+          <select
+            value={selectedTimeSlot}
+            onChange={e => setSelectedTimeSlot(e.target.value)}
+            style={timeSelectStyle}
+          >
+            {timeSlots.map(slot => (
+              <option key={slot} value={slot}>{slot}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Anonymous checkbox */}
+        <div style={checkboxStyle}>
+          <input
+            type="checkbox"
+            id="anonymousCheckbox"
+            checked={isAnonymous}
+            onChange={() => setIsAnonymous(!isAnonymous)}
+          />
+          <label htmlFor="anonymousCheckbox">Reserve anonymously</label>
+        </div>
+
         <div
           className="seats"
           aria-label="Seats"
@@ -496,6 +584,7 @@ export default function ReserveAdmin() {
                   : isAddedSeat
                   ? getOccupantName(currentDate, seatId)
                   : '';
+              const timeSlot = isAddedSeat ? getReservationTime(currentDate, seatId) : '';
 
               return (
                 <div
@@ -508,7 +597,7 @@ export default function ReserveAdmin() {
                     isReservedSeat
                       ? `Reserved by ${occupantName}`
                       : isAddedSeat && occupantName
-                      ? `Reserved by ${occupantName}`
+                      ? `Reserved by ${occupantName}${timeSlot ? ` (${timeSlot})` : ''}`
                       : isBlockedSeat
                       ? "Blocked"
                       : ''
