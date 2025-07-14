@@ -5,9 +5,11 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 ## How to run
 
 In case of errors in compiling, run the following in the command line, run the following:
+For frontend:
 ### 'npm uninstall react-scripts'
-### 'npm install react-scripts@5.0.1'
-### 'npm install antd'
+### 'npm install react-scripts@5.0.1 antd'
+For backend: 
+### 'npm install mongodb dotenv express cors axios'
 
 Once compiled successfully, you can now run the program through **'npm start'**
 
