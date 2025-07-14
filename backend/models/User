@@ -1,0 +1,14 @@
+const mongoose = require('mongoose');
+
+const userSchema = new mongoose.Schema({
+    user_id: String,
+    first_name: String,
+    last_name: String,
+    user_password: String,
+    user_role: String,
+    email_address: String,
+    user_description: String,
+    anonymous: Boolean
+});
+
+module.exports = mongoose.model('reservations', reservationSchema);

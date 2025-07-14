@@ -4,6 +4,7 @@
     base route + backend route -> 1 function each only -> returns response to front end
 */
 
+const User = require("./models/User");
 const express = require("express");
 const database = require("./connect");
 const ObjectId = require("mongodb").ObjectId;
@@ -81,12 +82,12 @@ userRoutes.route("/users/:id").put(async (request, response) => { // request fro
     let db = database.getDb()
     let mongoObject = { 
         $set: {
-            user_id: request.body.user_id,
+            // user_id: request.body.user_id,
             first_name: request.body.first_name,
             last_name: request.body.last_name,
-            user_password: request.body.user_password,
-            user_role: request.body.user_role,
-            email_address: request.body.email_address,
+            // user_password: request.body.user_password,
+            // user_role: request.body.user_role,
+            // email_address: request.body.email_address,
             user_description: request.body.user_description
         }
     }
