@@ -27,9 +27,9 @@ export default function ProfileOverlay({
             <div className="tabular-profile-avatar">
               <FaUserCircle size={120} color="#e0e0e0" />
             </div>
-            <div className="tabular-overlay-name">{user.name}</div>
-            <div className="tabular-overlay-role">{user.role}</div>
-            <div className="tabular-overlay-desc">{user.description}</div>
+            <div className="tabular-overlay-name">{user.first_name} {user.last_name}</div>
+            <div className="tabular-overlay-role">{user.user_role}</div>
+            <div className="tabular-overlay-desc">{user.user_description}</div>
           </div>
           {/* Right Side: ACTIONS */}
           <div className="tabular-overlay-actions">

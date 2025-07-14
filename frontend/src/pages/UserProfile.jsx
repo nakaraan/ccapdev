@@ -1,8 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 import { useUser } from './UserContext';
+import { useState, useEffect } from "react"
 import profile from './profile.png';
 import './UserProfile.css';
 import { FaEdit } from "react-icons/fa";
+import { getUser } from "./api";
 
 function UserProfile() {
   const navigate = useNavigate();
@@ -29,6 +31,7 @@ function UserProfile() {
   return (
     <div className="userprofile-container">
       <div className="profile-page">
+        <p className="id-holder">VIEWING USER WITH ID: {user.user_id}</p>
         <p className="id-holder">VIEWING USER WITH ID: {user.user_id}</p>
         <img
           src={profile}
@@ -69,7 +72,7 @@ function UserProfile() {
               border: "1px solid #e0e0e0",
             }}
           >
-            {description}
+            {user.user_description}
           </div>
           <button
             onClick={handleEditProfile}
