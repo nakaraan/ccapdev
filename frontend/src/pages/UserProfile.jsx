@@ -11,14 +11,6 @@ function UserProfile() {
   const description =
     user?.user_description ||
     "No description set. Edit your profile to add a description.";
-  
-  // TODO: Fetch actual reservations from database based on user ID
-  const reservations = user?.reservations || [
-    'GK302A – June 20, 2025 | 0730 - 1000',
-    'GK302B – July 4, 2025 | 1230 - 1415',
-    'AG1707 – July 21, 2025 | 0900 - 1030',
-    'AG1902 – July 29, 2025 | 1600 - 1830',
-  ];
 
   if (!user) {
     return (
@@ -93,14 +85,6 @@ function UserProfile() {
           >
             <FaEdit size={30} style={{ marginLeft: "10px", marginBottom: "10px" }} color="#00703c" />
           </button>
-        </div>
-        <div className="reservations-box">
-          <strong>Current Reservations:</strong>
-          <ul>
-            {reservations.map((r, i) => (
-              <li key={i}>{r}</li>
-            ))}
-          </ul>
         </div>
       </div>
     </div>
