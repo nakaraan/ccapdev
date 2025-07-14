@@ -6,7 +6,9 @@ import {
   clearSeatReservation, 
   toggleBlockedSeat, 
   clearAllReservations,
-  getLabs
+  getLabs,
+  getUser,
+  getUsers
 } from './api.js';
 import { useUser } from './UserContext.js';
 
@@ -284,7 +286,7 @@ export default function ReserveAdmin() {
     setSelectedSeatIndex(seatIndex === selectedSeatIndex ? null : seatIndex);
   }
 
-  function onActionClick() {
+  async function onActionClick() {
     if (selectedSeatIndex === null) {
       alert('Please select a seat first.');
       return;
@@ -314,24 +316,35 @@ export default function ReserveAdmin() {
           return;
         }
         
-        const occupantName = prompt('Enter the student\'s name for reservation (or type "anonymous" to keep it anonymous):');
-        if (!occupantName || occupantName.trim() === '') {
-          alert('Name is required. Please enter the student\'s name or "anonymous".');
+        // Validate that the student ID exists in the database
+        try {
+          const allUsers = await getUsers();
+          const userExists = allUsers.find(u => u.user_id === studentId.trim());
+          
+          if (!userExists) {
+            alert(`Student ID "${studentId.trim()}" does not exist in the database. Please verify the ID and try again.`);
+            return;
+          }
+          
+          const useRealName = confirm(`Use name for reservation?\nStudent: ${userExists.first_name} ${userExists.last_name}\n\nClick OK to use real name, Cancel for Anonymous`);
+          
+          const finalName = useRealName ? `${userExists.first_name} ${userExists.last_name}` : 'Anonymous';
+          
+          SeatCRUD.updateReservation(currentDate, selectedLab, selectedTimeSlot, selectedSeatIndex, 1, finalName, studentId.trim())
+            .then(newData => {
+              setSeatData(newData);
+              setSelectedSeatIndex(null);
+              setInfoOutput('');
+            })
+            .catch(error => {
+              console.error("Error updating reservation:", error);
+              alert("Failed to reserve seat. Please try again.");
+            });
+        } catch (error) {
+          console.error("Error validating student ID:", error);
+          alert("Failed to validate student ID. Please check your connection and try again.");
           return;
         }
-        
-        const finalName = occupantName.trim().toLowerCase() === 'anonymous' ? 'Anonymous' : occupantName.trim();
-        
-        SeatCRUD.updateReservation(currentDate, selectedLab, selectedTimeSlot, selectedSeatIndex, 1, finalName, studentId.trim())
-          .then(newData => {
-            setSeatData(newData);
-            setSelectedSeatIndex(null);
-            setInfoOutput('');
-          })
-          .catch(error => {
-            console.error("Error updating reservation:", error);
-            alert("Failed to reserve seat. Please try again.");
-          });
       } else if (action && action.toLowerCase() === 'unblock') {
         SeatCRUD.toggleBlockedSeat(currentDate, selectedLab, selectedTimeSlot, selectedSeatIndex)
           .then(newData => {
@@ -352,24 +365,35 @@ export default function ReserveAdmin() {
         return;
       }
       
-      const occupantName = prompt('Enter the student\'s name for reservation (or type "anonymous" to keep it anonymous):');
-      if (!occupantName || occupantName.trim() === '') {
-        alert('Name is required. Please enter the student\'s name or "anonymous".');
+      // Validate that the student ID exists in the database
+      try {
+        const allUsers = await getUsers();
+        const userExists = allUsers.find(u => u.user_id === studentId.trim());
+        
+        if (!userExists) {
+          alert(`Student ID "${studentId.trim()}" does not exist in the database. Please verify the ID and try again.`);
+          return;
+        }
+        
+        const useRealName = confirm(`Use real name for reservation?\nStudent: ${userExists.first_name} ${userExists.last_name}\n\nClick OK to use real name, Cancel for Anonymous`);
+        
+        const finalName = useRealName ? `${userExists.first_name} ${userExists.last_name}` : 'Anonymous';
+        
+        SeatCRUD.updateReservation(currentDate, selectedLab, selectedTimeSlot, selectedSeatIndex, 1, finalName, studentId.trim())
+          .then(newData => {
+            setSeatData(newData);
+            setSelectedSeatIndex(null);
+            setInfoOutput('');
+          })
+          .catch(error => {
+            console.error("Error adding reservation:", error);
+            alert("Failed to add reservation. Please try again.");
+          });
+      } catch (error) {
+        console.error("Error validating student ID:", error);
+        alert("Failed to validate student ID. Please check your connection and try again.");
         return;
       }
-      
-      const finalName = occupantName.trim().toLowerCase() === 'anonymous' ? 'Anonymous' : occupantName.trim();
-      
-      SeatCRUD.updateReservation(currentDate, selectedLab, selectedTimeSlot, selectedSeatIndex, 1, finalName, studentId.trim())
-        .then(newData => {
-          setSeatData(newData);
-          setSelectedSeatIndex(null);
-          setInfoOutput('');
-        })
-        .catch(error => {
-          console.error("Error adding reservation:", error);
-          alert("Failed to add reservation. Please try again.");
-        });
     }
   }
 
@@ -432,7 +456,7 @@ export default function ReserveAdmin() {
           alert("Failed to clear all reservations. Please try again.");
         });
     }
-  }
+  } 
 
   function getSeatClass(seatIndex) {
     const availability = getSeatStatus(seatData.seats, seatIndex);

@@ -321,4 +321,67 @@ userRoutes.route("/labs").get(async (request, response) => {
     }
 });
 
+// Delete all reservations for a specific user
+userRoutes.route("/user-reservations/:user_id").delete(async (request, response) => {
+    let db = database.getDb();
+    try {
+        const { user_id } = request.params;
+        console.log("=== DELETING USER RESERVATIONS ===");
+        console.log("Target user_id:", user_id);
+        
+        // Get all reservations from the collection
+        let allReservations = await db.collection("reservations").find({}).toArray();
+        console.log("Total reservation documents found:", allReservations.length);
+        
+        let deletedCount = 0;
+        
+        // Go through each reservation document and remove seats belonging to this user
+        for (const reservationDoc of allReservations) {
+            if (reservationDoc.seats) {
+                let hasChanges = false;
+                const updatedSeats = { ...reservationDoc.seats };
+                
+                // Check each seat and remove if it belongs to the user
+                Object.keys(updatedSeats).forEach(seatIndex => {
+                    const seatData = updatedSeats[seatIndex];
+                    if (seatData.user_id === user_id) {
+                        console.log(`Removing user from seat ${seatIndex} in reservation:`, {
+                            date: reservationDoc.date,
+                            lab: reservationDoc.lab,
+                            timeSlot: reservationDoc.timeSlot
+                        });
+                        
+                        // Set seat back to vacant
+                        updatedSeats[seatIndex] = {
+                            status: 0,
+                            occupantName: "Anonymous"
+                        };
+                        hasChanges = true;
+                        deletedCount++;
+                    }
+                });
+                
+                // Update the document if there were changes
+                if (hasChanges) {
+                    await db.collection("reservations").updateOne(
+                        { _id: reservationDoc._id },
+                        { $set: { seats: updatedSeats } }
+                    );
+                }
+            }
+        }
+        
+        console.log("=== DELETION COMPLETE ===");
+        console.log("Total reservations cleared:", deletedCount);
+        
+        response.json({ 
+            message: `Successfully cleared ${deletedCount} reservations for user ${user_id}`,
+            deletedCount 
+        });
+    } catch (error) {
+        console.error("Error deleting user reservations:", error);
+        response.status(500).json({ error: error.message });
+    }
+});
+
 module.exports = userRoutes

@@ -4,15 +4,45 @@ import { useState, useEffect } from "react"
 import profile from './profile.png';
 import './UserProfile.css';
 import { FaEdit } from "react-icons/fa";
-import { getUser } from "./api";
+import { getUser, getUserReservations } from "./api";
+import { Table, Spin, Alert } from 'antd';
+
 
 function UserProfile() {
   const navigate = useNavigate();
   const { user } = useUser();
+  const [reservations, setReservations] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const description =
     user?.user_description ||
     "No description set. Edit your profile to add a description.";
+
+  useEffect(() => {
+    const fetchReservations = async () => {
+      if (!user) return;
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await getUserReservations(user.user_id);
+        const transformed = data.map((reservation, idx) => ({
+          key: `${reservation.date}-${reservation.lab}-${reservation.timeSlot}-${reservation.seatIndex}`,
+          date: reservation.date,
+          lab: reservation.lab,
+          timeSlot: reservation.timeSlot,
+          seat: reservation.seatId,
+          occupantName: reservation.occupantName || '',
+        }));
+        setReservations(transformed);
+      } catch (err) {
+        setError('Failed to load reservations.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchReservations();
+  }, [user]);
 
   if (!user) {
     return (
@@ -31,7 +61,6 @@ function UserProfile() {
   return (
     <div className="userprofile-container">
       <div className="profile-page">
-        <p className="id-holder">VIEWING USER WITH ID: {user.user_id}</p>
         <p className="id-holder">VIEWING USER WITH ID: {user.user_id}</p>
         <img
           src={profile}
@@ -88,6 +117,30 @@ function UserProfile() {
           >
             <FaEdit size={30} style={{ marginLeft: "10px", marginBottom: "10px" }} color="#00703c" />
           </button>
+        </div>
+        {/* Mini-table of reservations under description */}
+        <div style={{ marginTop: 0, width: '100%' }}>
+          <h3 style={{ color: '#00703c', marginBottom: 12 }}>My Reservations</h3>
+          {loading ? (
+            <Spin tip="Loading reservations..." />
+          ) : error ? (
+            <Alert type="error" message={error} />
+          ) : (
+            <Table
+              columns={[
+                { title: 'Date', dataIndex: 'date', key: 'date' },
+                { title: 'Lab', dataIndex: 'lab', key: 'lab' },
+                { title: 'Time Slot', dataIndex: 'timeSlot', key: 'timeSlot' },
+                { title: 'Seat', dataIndex: 'seat', key: 'seat' },
+                { title: 'Name', dataIndex: 'occupantName', key: 'occupantName' },
+              ]}
+              dataSource={reservations}
+              pagination={false}
+              size="small"
+              locale={{ emptyText: 'No reservations found.' }}
+              style={{ background: '#fff', borderRadius: 8 }}
+            />
+          )}
         </div>
       </div>
     </div>

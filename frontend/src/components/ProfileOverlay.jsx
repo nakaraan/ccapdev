@@ -5,8 +5,6 @@ import "../pages/Tabular.css";
 export default function ProfileOverlay({
   user,
   onClose,
-  onShowReservations,
-  onEditReservations,
 }) {
   return (
     <div className="tabular-overlay-bg" onClick={onClose}>
@@ -22,7 +20,7 @@ export default function ProfileOverlay({
           &times;
         </button>
         <div className="tabular-overlay-content">
-          {/* Left Side: PROFILE INFO */}
+          {/* Profile Info Only */}
           <div className="tabular-overlay-profile">
             <div className="tabular-profile-avatar">
               <FaUserCircle size={120} color="#e0e0e0" />
@@ -30,21 +28,6 @@ export default function ProfileOverlay({
             <div className="tabular-overlay-name">{user.first_name} {user.last_name}</div>
             <div className="tabular-overlay-role">{user.user_role}</div>
             <div className="tabular-overlay-desc">{user.user_description}</div>
-          </div>
-          {/* Right Side: ACTIONS */}
-          <div className="tabular-overlay-actions">
-            <button
-              className="tabular-btn tabular-btn-main"
-              onClick={onShowReservations}
-            >
-              Current Reservations
-            </button>
-            <button
-              className="tabular-btn tabular-btn-outline"
-              onClick={onEditReservations}
-            >
-              Edit Reservations
-            </button>
           </div>
         </div>
       </div>

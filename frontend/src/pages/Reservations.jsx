@@ -1,8 +1,6 @@
 import { Table, Button, Popconfirm, message } from 'antd';
 import { useState, useEffect } from 'react';
 import './Tabular.css';
-import { Overlay } from '../components/Overlay';
-import AvailabilityPreview from '../components/SeatPreview';
 import { useUser } from './UserContext';
 import { getUserReservations, clearSeatReservation } from './api';
 
@@ -46,7 +44,6 @@ const columns = (onEdit, onDelete) => [
 
 export default function Reservations() {
   const { user } = useUser();
-  const [previewReservation, setPreviewReservation] = useState(null);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -192,25 +189,12 @@ export default function Reservations() {
         columns={columns(handleEdit, handleDelete)}
         dataSource={data}
         loading={loading}
-        rowClassName={() => 'clickable-row'}
         pagination={false}
         style={{ background: '#fff', borderRadius: 12 }}
-        onRow={record => ({
-          onClick: () => setPreviewReservation(record),
-        })}
         locale={{
           emptyText: loading ? 'Loading...' : `No reservations found for user ${user.user_id}. Make your first reservation!`
         }}
       />
-      
-      <Overlay isOpen={!!previewReservation} onClose={() => setPreviewReservation(null)}>
-        {previewReservation && (
-          <AvailabilityPreview
-            reservation={previewReservation}
-            onClose={() => setPreviewReservation(null)}
-          />
-        )}
-      </Overlay>
     </div>
   );
 }

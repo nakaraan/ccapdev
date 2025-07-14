@@ -1,7 +1,7 @@
 import { useNavigate, Link } from "react-router-dom";
 import { useState } from "react";
 import { useUser } from "./UserContext";
-import { loginUser } from "./api"; // <-- You need to add this function in your api.js
+import { loginUser } from "./api"; 
 
 export default function Login() {
   const navigate = useNavigate();

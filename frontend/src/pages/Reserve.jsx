@@ -295,13 +295,9 @@ export default function Reserve() {
         });
     } else if (availability === 0) {
       // Add reservation to vacant seat (user makes reservation for themselves)
-      const occupantName = prompt('Enter your name for the reservation (or type "anonymous" to remain anonymous):');
-      if (!occupantName || occupantName.trim() === '') {
-        alert('Name is required. Please enter your name or "anonymous".');
-        return;
-      }
+      const useRealName = confirm(`Use your real name for reservation?\nUser: ${user.first_name} ${user.last_name}\n\nClick OK to use real name, Cancel for Anonymous`);
       
-      const finalName = occupantName.trim().toLowerCase() === 'anonymous' ? 'Anonymous' : occupantName.trim();
+      const finalName = useRealName ? `${user.first_name} ${user.last_name}` : 'Anonymous';
       
       SeatCRUD.updateReservation(currentDate, selectedLab, selectedTimeSlot, selectedSeatIndex, 1, finalName, user.user_id)
         .then(newData => {

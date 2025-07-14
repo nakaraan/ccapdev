@@ -50,6 +50,33 @@ export async function deleteUser(id) {
     return response // to make sure deletion is successful
 }
 
+// Delete all reservations for a specific user
+export async function deleteUserReservations(user_id) {
+    try {
+        const response = await axios.delete(`${URL}/user-reservations/${user_id}`);
+        return response.data;
+    } catch (error) {
+        console.error("Error deleting user reservations:", error);
+        throw error;
+    }
+}
+
+// Delete user account and all their reservations
+export async function deleteUserAccount(user_id) {
+    try {
+        // First delete all user's reservations
+        await deleteUserReservations(user_id);
+        
+        // Then delete the user profile
+        const response = await deleteUser(user_id);
+        
+        return response;
+    } catch (error) {
+        console.error("Error deleting user account:", error);
+        throw error;
+    }
+}
+
 // === SEAT RESERVATION API FUNCTIONS ===
 
 // Get seat reservations for a specific date, lab, and time slot
@@ -136,22 +163,48 @@ export async function clearAllReservations(date, lab, timeSlot) {
 // Get all reservations for a specific user
 export async function getUserReservations(user_id) {
     try {
+        console.log("=== FRONTEND API: getUserReservations ===");
         console.log("API: Fetching reservations for user_id:", user_id);
         console.log("API: Making request to:", `${URL}/user-reservations/${user_id}`);
+        console.log("API: Request timestamp:", new Date().toISOString());
         
         const response = await axios.get(`${URL}/user-reservations/${user_id}`);
+        
+        console.log("API: Response received!");
         console.log("API: Response status:", response.status);
-        console.log("API: Response data:", response.data);
+        console.log("API: Response headers:", response.headers);
+        console.log("API: Raw response data:", response.data);
+        console.log("API: Response data type:", typeof response.data);
+        console.log("API: Response data length:", Array.isArray(response.data) ? response.data.length : 'Not an array');
+        
+        if (Array.isArray(response.data)) {
+            console.log("API: Detailed reservation data:");
+            response.data.forEach((reservation, index) => {
+                console.log(`  Reservation ${index + 1}:`, {
+                    date: reservation.date,
+                    lab: reservation.lab,
+                    timeSlot: reservation.timeSlot,
+                    seatIndex: reservation.seatIndex,
+                    seatId: reservation.seatId,
+                    occupantName: reservation.occupantName
+                });
+            });
+        }
         
         if (response.status === 200) {
+            console.log("API: Returning data successfully");
             return response.data;
         } else {
             console.log("API: Non-200 status, returning empty array");
             return [];
         }
     } catch (error) {
+        console.error("=== API ERROR ===");
         console.error("API: Error getting user reservations:", error);
-        console.error("API: Error details:", error.response?.data || error.message);
+        console.error("API: Error status:", error.response?.status);
+        console.error("API: Error data:", error.response?.data);
+        console.error("API: Error message:", error.message);
+        console.error("API: Full error object:", error);
         return [];
     }
 }
