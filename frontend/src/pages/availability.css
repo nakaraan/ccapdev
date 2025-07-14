@@ -14,17 +14,41 @@
   overflow: visible;
 }
 
+/* Card Container */
+.card {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  padding: 40px 32px;
+  min-width: 420px;
+  max-width: 600px;
+  margin: 48px auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: 'Poppins', sans-serif;
+}
+
 .header {
   display: flex;
   justify-content: center;
   align-items: center;
   margin-bottom: 10px;
   position: relative;
+  width: 100%;
+  justify-content: space-between;
 }
 
 .title {
   font-size: 2rem;
   font-weight: bold;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #00703c;
+  letter-spacing: 0.5px;
+  text-align: center;
+  flex-grow: 1;
+  margin-right: 20px;
 }
 
 .closeBtn {
@@ -36,10 +60,14 @@
   cursor: pointer;
   font-weight: bold;
   color: gray;
+  margin-left: auto;
+  margin-right: -8px;
+  margin-top: -8px;
+  transition: color 0.2s;
 }
 
 .closeBtn:hover {
-  color: red;
+  color: #00703c;
 }
 
 .date-nav {
@@ -49,7 +77,8 @@
   gap: 10px;
   margin-bottom: 20px;
   font-size: 1.5rem;
-  color: green;
+  color: #00703c;
+  font-weight: 600;
 }
 
 /* Date Buttons */
@@ -58,7 +87,7 @@
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
-  color: green;
+  color: #00703c;
 }
 
 .date {
@@ -124,6 +153,12 @@
   border-radius: 5px;
   cursor: pointer;
   transition: background-color 0.5s;
+  padding: 12px;
+  font-size: 1.1rem;
+  background-color: #00703c;
+  border-radius: 8px;
+  font-weight: 700;
+  margin-top: 12px;
 }
 
 /* Unclickable Button */
@@ -143,13 +178,8 @@
   margin-bottom: 15px;
   font-size: 1rem;
   color: black;
-}
-
-/* Aligns Legends */
-.legend div {
-  display: flex;
-  align-items: center;
-  gap: 5px;
+  width: 100%;
+  gap: 24px;
 }
 
 .legend-box {
@@ -157,18 +187,9 @@
   height: 20px;
   border-radius: 5px;
   border: 1px solid #999;
-}
-
-.legend-box.available {
-  background-color: gray;
-}
-
-.legend-box.reserved {
-  background-color: rgb(144, 144, 144)(121, 121, 121);
-}
-
-.legend-box.blocked {
-  background-color: black;
+  display: inline-block;
+  background-color: var(--legend-bg, #e0e0e0);
+  margin-right: 8px;
 }
 
 /* Reserved Seats */
@@ -186,6 +207,22 @@
   cursor: not-allowed !important;
 }
 
+/* Admin Reserved Seats - Separate class for admin mode */
+.seat.admin-reserved {
+  background-color: rgb(133, 133, 133);
+  color: white;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+/* Admin Blocked Seats - Separate class for admin mode */
+.seat.admin-blocked {
+  background-color: black;
+  color: white;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
 /* Selected Seat */
 .seat.added {
   background-color: green;
@@ -197,4 +234,62 @@
 .seat:focus {
   outline: 2px solid #1976d2;
   outline-offset: 2px;
+}
+
+.info-output {
+  margin-top: 10px;
+  font-size: 1rem;
+  color: #333;
+  white-space: pre-wrap;
+  text-align: center;
+  min-height: 24px;
+}
+
+.dataBtn {
+  background: #00703c;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 18px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin: 0 8px;
+  margin-bottom: 8px;
+  transition: background 0.2s;
+}
+
+.dataBtn:hover {
+  background: #005a2f;
+}
+
+/* Selector Container */
+.selector-container {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  margin: 16px 0;
+}
+
+.selector-container select {
+  flex: 1;
+  font-size: 1.1rem;
+  font-weight: 500;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 6px 16px;
+  color: #00703c;
+  background: #f5f5f5;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.selector-container select:focus {
+  border-color: #00703c;
+  box-shadow: 0 0 0 2px rgba(0, 112, 60, 0.1);
+}
+
+.selector-container select:hover {
+  border-color: #005a2e;
 }

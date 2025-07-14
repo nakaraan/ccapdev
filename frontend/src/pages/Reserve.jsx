@@ -1,45 +1,138 @@
 import React, { useState, useEffect } from 'react';
 import './availability.css';
-
+import { 
+  getSeatReservations, 
+  updateSeatReservation, 
+  clearSeatReservation, 
+  getLabs
+} from './api.js';
+import { useUser } from './UserContext.js';
 
 const rows = 5;
 const seatsPerSide = 4;
+const totalSeats = rows * seatsPerSide * 2; // 40 seats total
 const aisleColumn = seatsPerSide;
-const blockedSeats = new Set(['S3', 'S15']);
-const reservedSeats = new Set(['S5', 'S12', 'S20', 'S33']);
-const reserverNames = {
-  S5: 'Hanz',
-  S12: 'Gabriel',
-  S20: 'Antonio',
-  S33: 'Gutierrez',
+const initializeSeatMap = () => ({});
+
+// seat status (0 = vacant if not in map, 1 = reserved, -1 = blocked)
+const getSeatStatus = (seatMap, seatIndex) => {
+  if (seatMap[seatIndex]) return seatMap[seatIndex].status;
+  return 0; // vacant if not in map
 };
-const blockOffMode = true;
 
+const getOccupantName = (seatMap, seatIndex) => {
+  if (seatMap[seatIndex]) return seatMap[seatIndex].occupantName || "Anonymous";
+  return "Anonymous";
+};
 
+// Get user ID from sparse map
+const getUserId = (seatMap, seatIndex) => {
+  if (seatMap[seatIndex]) return seatMap[seatIndex].user_id;
+  return null;
+};
 
-function getStorageKey(date) {
-  return 'addedSeat_' + date.toISOString().slice(0, 10);
+function getStorageKey(date, lab, timeSlot) {
+  return `seatData_${lab}_${date.toISOString().slice(0, 10)}_${timeSlot}`;
 }
-function setAddedSeatForDate(date, seatId) {
-  if (seatId) {
-    localStorage.setItem(getStorageKey(date), seatId);
-  } else {
-    localStorage.removeItem(getStorageKey(date));
+
+// Generate time slots from 7:30 AM to 10:00 PM in 30-minute intervals
+function generateTimeSlots() {
+  const slots = [];
+  for (let hour = 7; hour <= 21; hour++) {
+    for (let minute = 0; minute < 60; minute += 30) {
+      // Skip 7:00 AM, start from 7:30 AM
+      if (hour === 7 && minute === 0) continue;
+      // Stop at 10:00 PM
+      if (hour === 22) break;
+      
+      const startHour = hour;
+      const startMinute = minute;
+      const endHour = minute === 30 ? hour + 1 : hour;
+      const endMinute = minute === 30 ? 0 : 30;
+      
+      const formatTime = (h, m) => {
+        return `${h.toString().padStart(2, '0')}${m.toString().padStart(2, '0')}`;
+      };
+      
+      const startTime = formatTime(startHour, startMinute);
+      const endTime = formatTime(endHour, endMinute);
+      const slotKey = `${startTime}-${endTime}`;
+      
+      slots.push({
+        key: slotKey,
+        display: slotKey,
+        startHour,
+        startMinute,
+        endHour,
+        endMinute
+      });
+    }
   }
+  return slots;
 }
-function getAddedSeatForDate(date) {
-  return localStorage.getItem(getStorageKey(date));
-}
-function setOccupantName(date, seatId, name) {
-  if (name) {
-    localStorage.setItem(`occupant_${getStorageKey(date)}_${seatId}`, name);
-  } else {
-    localStorage.removeItem(`occupant_${getStorageKey(date)}_${seatId}`);
+
+// CRUD Operations using MongoDB API (User mode)
+const SeatCRUD = {
+  // Load seat data from MongoDB
+  load: async (date, lab, timeSlot) => {
+    try {
+      const dateStr = date.toISOString().slice(0, 10);
+      const seatMap = await getSeatReservations(dateStr, lab, timeSlot);
+      return { seats: seatMap };
+    } catch (error) {
+      console.error("Error loading seat data:", error);
+      return { seats: initializeSeatMap() };
+    }
+  },
+
+  // Update seat reservation (User mode: only for current user)
+  updateReservation: async (date, lab, timeSlot, seatIndex, status, occupantName = "", user_id = null) => {
+    try {
+      const dateStr = date.toISOString().slice(0, 10);
+      await updateSeatReservation(dateStr, lab, timeSlot, seatIndex, status, occupantName, user_id);
+      return await SeatCRUD.load(date, lab, timeSlot);
+    } catch (error) {
+      console.error("Error updating seat reservation:", error);
+      throw error;
+    }
+  },
+
+  // Clear seat reservation (User mode: only own reservations)
+  clearReservation: async (date, lab, timeSlot, seatIndex) => {
+    try {
+      const dateStr = date.toISOString().slice(0, 10);
+      await clearSeatReservation(dateStr, lab, timeSlot, seatIndex);
+      return await SeatCRUD.load(date, lab, timeSlot);
+    } catch (error) {
+      console.error("Error clearing seat reservation:", error);
+      throw error;
+    }
+  },
+
+  // Get all reservations for a date/lab/timeSlot (User mode: no user IDs shown)
+  getReservations: (seatMap) => {
+    const reservations = [];
+    Object.entries(seatMap).forEach(([seatIndex, seat]) => {
+      if (seat.status === 1) {
+        reservations.push({
+          seatIndex: parseInt(seatIndex),
+          seatId: `S${parseInt(seatIndex) + 1}`,
+          occupantName: seat.occupantName
+          // Note: No user_id exposed to regular users
+        });
+      }
+    });
+    return reservations;
+  },
+
+  // Get available seat count
+  getAvailableCount: (seatMap) => {
+    const occupiedCount = Object.keys(seatMap).length;
+    return totalSeats - occupiedCount;
   }
-}
-function getOccupantName(date, seatId) {
-  return localStorage.getItem(`occupant_${getStorageKey(date)}_${seatId}`);
-}
+};
+
+
 function formatDate(date) {
   return date.toLocaleDateString(undefined, {
     weekday: 'long',
@@ -50,87 +143,176 @@ function formatDate(date) {
 }
 
 export default function Reserve() {
+  const { user } = useUser(); // Get current logged-in user
   const [currentDate, setCurrentDate] = useState(new Date(2025, 5, 14));
-  const [selectedSeatId, setSelectedSeatId] = useState(null);
-  const [addedSeatId, setAddedSeatId] = useState(() => getAddedSeatForDate(new Date(2025, 5, 14)));
+  const [selectedSeatIndex, setSelectedSeatIndex] = useState(null);
   const [infoOutput, setInfoOutput] = useState('');
-    const labs = [
-    "GK210",
-    "GK304A",
-    "GK304B",
-    "AG1804",
-    "AG1904",
-    "LS212",
-    "LS229",
-    "LS320",
-    "LS335",
-    "YG602"
-  ];
-  const [selectedLab, setSelectedLab] = useState(labs[0] || "");
+  const [labs, setLabs] = useState([]);
+  const [selectedLab, setSelectedLab] = useState("");
 
-
-  // Reset seat selection when date changes
+  // Fetch labs from server on mount
   useEffect(() => {
-    setSelectedSeatId(null);
-    setAddedSeatId(getAddedSeatForDate(currentDate));
+    async function fetchLabs() {
+      try {
+        console.log("Fetching labs..."); // Debug log
+        const labsList = await getLabs();
+        console.log("Labs fetched:", labsList); // Debug log
+        
+        if (labsList && labsList.length > 0) {
+          const labIds = labsList.map(lab => lab.lab_id);
+          console.log("Lab IDs:", labIds); // Debug log
+          setLabs(labIds);
+          setSelectedLab(labIds[0] || "");
+        } else {
+          console.log("No labs found or empty response");
+          // Fallback to hardcoded labs if server fetch fails
+          const fallbackLabs = ["GK210", "GK304A", "GK304B", "AG1804", "AG1904", "LS212", "LS229", "LS320", "LS335", "YG602"];
+          console.log("Using fallback labs:", fallbackLabs);
+          setLabs(fallbackLabs);
+          setSelectedLab(fallbackLabs[0]);
+        }
+      } catch (error) {
+        console.error("Error fetching labs:", error);
+        // Fallback to hardcoded labs if server fetch fails
+        const fallbackLabs = ["GK210", "GK304A", "GK304B", "AG1804", "AG1904", "LS212", "LS229", "LS320", "LS335", "YG602"];
+        console.log("Using fallback labs due to error:", fallbackLabs);
+        setLabs(fallbackLabs);
+        setSelectedLab(fallbackLabs[0]);
+      }
+    }
+    fetchLabs();
+  }, []);
+
+  // Generate time slots and set default
+  const timeSlots = generateTimeSlots();
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState(timeSlots[0]?.key || "");
+  
+  // Load seat data for current date, lab, and time slot
+  const [seatData, setSeatData] = useState(() => ({ seats: initializeSeatMap() }));
+
+  // User verification - this component should only be accessible by logged-in users
+  if (!user) {
+    return (
+      <div style={{ 
+        padding: "2rem", 
+        textAlign: "center", 
+        color: "#d32f2f",
+        fontFamily: "Poppins, sans-serif"
+      }}>
+        <h2>Login Required</h2>
+        <p>Please log in to access the seat reservation system.</p>
+      </div>
+    );
+  }
+
+  // Reset seat selection and load data when date, lab, or time slot changes
+  useEffect(() => {
+    setSelectedSeatIndex(null);
     setInfoOutput('');
-  }, [currentDate]);
+    const loadData = async () => {
+      try {
+        const newData = await SeatCRUD.load(currentDate, selectedLab, selectedTimeSlot);
+        setSeatData(newData);
+      } catch (error) {
+        console.error("Error loading seat data:", error);
+        setSeatData({ seats: initializeSeatMap() });
+      }
+    };
+    loadData();
+  }, [currentDate, selectedLab, selectedTimeSlot]);
 
   // Build seat grid with aisle
   function buildSeatGrid() {
     const grid = [];
-    let seatNumber = 1;
+    let seatIndex = 0;
     for (let row = 1; row <= rows; row++) {
       const rowSeats = [];
       for (let col = 0; col < seatsPerSide * 2 + 1; col++) {
         if (col === aisleColumn) {
           rowSeats.push({ type: 'aisle', key: `r${row}c${col}` });
         } else {
+          const seatNumber = seatIndex + 1;
           const seatId = 'S' + seatNumber;
-          rowSeats.push({ type: 'seat', seatId, key: `r${row}c${col}`, seatNumber });
-          seatNumber++;
+          rowSeats.push({ 
+            type: 'seat', 
+            seatId, 
+            seatIndex,
+            key: `r${row}c${col}`, 
+            seatNumber 
+          });
+          seatIndex++;
         }
       }
       grid.push(rowSeats);
     }
     return grid;
   }
+  
   const seatGrid = buildSeatGrid();
 
-  function onSeatClick(seatId) {
-    if (blockOffMode && blockedSeats.has(seatId)) return;
-    if (reservedSeats.has(seatId)) {
-      alert(`Seat ${seatId} is reserved by ${reserverNames[seatId] || 'Unknown'}.`);
+  function onSeatClick(seatIndex) {
+    const availability = getSeatStatus(seatData.seats, seatIndex);
+    const userId = getUserId(seatData.seats, seatIndex);
+    
+    // User mode restrictions:
+    // 1. Cannot click blocked seats
+    if (availability === -1) {
+      return; // Do nothing for blocked seats
+    }
+    
+    // 2. Can only click vacant seats or their own reservations
+    if (availability === 1 && userId !== user.user_id) {
+      // Show occupant name but don't allow interaction
+      const occupantName = getOccupantName(seatData.seats, seatIndex);
+      alert(`This seat is reserved by ${occupantName}.`);
       return;
     }
-    if (addedSeatId === seatId) return;
-    setSelectedSeatId(seatId === selectedSeatId ? null : seatId);
+    
+    // Allow selection only for vacant seats or user's own reservations
+    setSelectedSeatIndex(seatIndex === selectedSeatIndex ? null : seatIndex);
   }
 
   function onActionClick() {
-    if (!selectedSeatId && !addedSeatId) {
+    if (selectedSeatIndex === null) {
       alert('Please select a seat first.');
       return;
     }
-    if (addedSeatId === selectedSeatId && addedSeatId) {
-      // Remove seat
-      setAddedSeatForDate(currentDate, null);
-      setOccupantName(currentDate, selectedSeatId, null);
-      setAddedSeatId(null);
-      setSelectedSeatId(null);
-      setInfoOutput('');
-    } else {
-      // Add seat
-      const occupantName = prompt('Enter Your Name For Reservation:');
+    
+    const availability = getSeatStatus(seatData.seats, selectedSeatIndex);
+    const userId = getUserId(seatData.seats, selectedSeatIndex);
+    
+    if (availability === 1 && userId === user.user_id) {
+      // Remove user's own reservation
+      SeatCRUD.clearReservation(currentDate, selectedLab, selectedTimeSlot, selectedSeatIndex)
+        .then(newData => {
+          setSeatData(newData);
+          setSelectedSeatIndex(null);
+          setInfoOutput('');
+        })
+        .catch(error => {
+          console.error("Error clearing reservation:", error);
+          alert("Failed to clear reservation. Please try again.");
+        });
+    } else if (availability === 0) {
+      // Add reservation to vacant seat (user makes reservation for themselves)
+      const occupantName = prompt('Enter your name for the reservation (or type "anonymous" to remain anonymous):');
       if (!occupantName || occupantName.trim() === '') {
-        alert('Name Is Required.');
+        alert('Name is required. Please enter your name or "anonymous".');
         return;
       }
-      setAddedSeatForDate(currentDate, selectedSeatId);
-      setOccupantName(currentDate, selectedSeatId, occupantName);
-      setAddedSeatId(selectedSeatId);
-      setSelectedSeatId(null);
-      setInfoOutput('');
+      
+      const finalName = occupantName.trim().toLowerCase() === 'anonymous' ? 'Anonymous' : occupantName.trim();
+      
+      SeatCRUD.updateReservation(currentDate, selectedLab, selectedTimeSlot, selectedSeatIndex, 1, finalName, user.user_id)
+        .then(newData => {
+          setSeatData(newData);
+          setSelectedSeatIndex(null);
+          setInfoOutput('');
+        })
+        .catch(error => {
+          console.error("Error adding reservation:", error);
+          alert("Failed to add reservation. Please try again.");
+        });
     }
   }
 
@@ -139,6 +321,7 @@ export default function Reserve() {
     newDate.setDate(newDate.getDate() - 1);
     setCurrentDate(newDate);
   }
+  
   function onNextDate() {
     const newDate = new Date(currentDate);
     newDate.setDate(newDate.getDate() + 1);
@@ -146,193 +329,107 @@ export default function Reserve() {
   }
 
   function onShowAvailableSeats() {
-    let count = 0;
-    seatGrid.flat().forEach((cell) => {
-      if (cell.type !== 'seat') return;
-      const seatId = cell.seatId;
-      const isReserved = reservedSeats.has(seatId);
-      const isBlocked = blockOffMode && blockedSeats.has(seatId);
-      const isAdded = addedSeatId === seatId;
-      if (!isReserved && !isBlocked && !isAdded) count++;
-    });
-    setInfoOutput(`Available seats for ${formatDate(currentDate)}: ${count}`);
+    const count = SeatCRUD.getAvailableCount(seatData.seats);
+    const selectedSlot = timeSlots.find(slot => slot.key === selectedTimeSlot);
+    setInfoOutput(`Available seats for ${formatDate(currentDate)} (${selectedSlot?.display}): ${count}`);
   }
 
   function onShowOccupants() {
-    const occupants = [];
-    reservedSeats.forEach((seatId) => {
-      occupants.push({ seatId, name: reserverNames[seatId] || 'Unknown' });
-    });
-    if (addedSeatId) {
-      const occupantName = getOccupantName(currentDate, addedSeatId) || 'Unknown';
-      occupants.push({ seatId: addedSeatId, name: occupantName });
-    }
-    if (occupants.length === 0) {
-      setInfoOutput(`No Occupants For ${formatDate(currentDate)}.`);
+    const reservations = SeatCRUD.getReservations(seatData.seats);
+    const selectedSlot = timeSlots.find(slot => slot.key === selectedTimeSlot);
+    
+    if (reservations.length === 0) {
+      setInfoOutput(`No Occupants For ${formatDate(currentDate)} (${selectedSlot?.display}).`);
     } else {
-      const list = occupants.map((o) => `Seat ${o.seatId}: ${o.name}`).join('\n');
-      setInfoOutput(`Occupants For ${formatDate(currentDate)}:\n${list}`);
+      const list = reservations.map((r) => {
+        // User mode: Only show occupant names, no student IDs
+        return `Seat ${r.seatId}: ${r.occupantName}`;
+      }).join('\n');
+      setInfoOutput(`Occupants For ${formatDate(currentDate)} (${selectedSlot?.display}):\n${list}`);
     }
   }
 
-  function getSeatClass(seatId) {
-    if (blockOffMode && blockedSeats.has(seatId)) return 'seat blocked';
-    if (reservedSeats.has(seatId)) return 'seat reserved';
-    if (addedSeatId === seatId) return 'seat added';
-    if (selectedSeatId === seatId) return 'seat selected';
+  function getSeatClass(seatIndex) {
+    const availability = getSeatStatus(seatData.seats, seatIndex);
+    const userId = getUserId(seatData.seats, seatIndex);
+    
+    if (availability === -1) return 'seat user-blocked';
+    if (availability === 1) {
+      // Different styling for user's own reservation vs others
+      if (userId === user.user_id) {
+        return 'seat user-own-reservation';
+      } else {
+        return 'seat user-other-reservation';
+      }
+    }
+    if (selectedSeatIndex === seatIndex) return 'seat selected';
     return 'seat';
   }
 
-  function getAriaPressed(seatId) {
-    if (addedSeatId === seatId || selectedSeatId === seatId) return 'true';
+  function getAriaPressed(seatIndex) {
+    if (selectedSeatIndex === seatIndex) return 'true';
     return 'false';
   }
 
-  // Overlay-style card container
-  const cardStyle = {
-    background: "#fff",
-    borderRadius: 18,
-    boxShadow: "0 8px 32px rgba(0,0,0,0.18)",
-    padding: "40px 32px",
-    minWidth: 420,
-    maxWidth: 600,
-    margin: "48px auto",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    fontFamily: "Poppins, sans-serif",
-  };
+  function getSeatBackgroundColor(seatIndex) {
+    const availability = getSeatStatus(seatData.seats, seatIndex);
+    const userId = getUserId(seatData.seats, seatIndex);
+    
+    if (availability === -1) return '#ccc'; // blocked
+    if (availability === 1) {
+      if (userId === user.user_id) {
+        return '#00703c'; // user's own reservation (green)
+      } else {
+        return '#f44336'; // other user's reservation (red)
+      }
+    }
+    if (selectedSeatIndex === seatIndex) return '#e0e0e0'; // selected
+    return '#e0e0e0'; // vacant
+  }
 
-  const headerStyle = {
-    width: "100%",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 18,
-  };
+  function getSeatBorderColor(seatIndex) {
+    const availability = getSeatStatus(seatData.seats, seatIndex);
+    const userId = getUserId(seatData.seats, seatIndex);
+    
+    if (availability === 1) {
+      if (userId === user.user_id) {
+        return '2px solid #00703c'; // user's own reservation
+      } else {
+        return '1px solid #f44336'; // other user's reservation
+      }
+    }
+    if (selectedSeatIndex === seatIndex) return '2px solid #00703c';
+    return '1px solid #ccc';
+  }
 
-  const titleStyle = {
-    fontSize: "2rem",
-    fontWeight: 700,
-    color: "#00703c",
-    letterSpacing: "0.5px",
-  };
-
-  const closeBtnStyle = {
-    background: "none",
-    border: "none",
-    fontSize: "2rem",
-    color: "#888",
-    cursor: "pointer",
-    fontWeight: "bold",
-    marginLeft: "auto",
-    marginRight: "-8px",
-    marginTop: "-8px",
-    transition: "color 0.2s",
-  };
-
-  const dateNavStyle = {
-    display: "flex",
-    alignItems: "center",
-    gap: 16,
-    marginBottom: 24,
-    fontSize: "1.2rem",
-    color: "#00703c",
-    fontWeight: 600,
-  };
-
-  const dateBtnStyle = {
-    background: "none",
-    border: "none",
-    fontSize: "1.5rem",
-    cursor: "pointer",
-    color: "#00703c",
-    padding: "0 8px",
-    borderRadius: 6,
-    transition: "background 0.2s",
-  };
-
-  const dateStyle = {
-    minWidth: 220,
-    textAlign: "center",
-    fontWeight: 500,
-    fontSize: "1.1rem",
-    letterSpacing: "0.5px",
-  };
-
-  const seatGridStyle = {
-    display: "grid",
-    gridTemplateColumns: "repeat(9, 40px)",
-    gap: "10px",
-    justifyItems: "center",
-    marginBottom: 24,
-    marginTop: 8,
-  };
-
-  const legendStyle = {
-    display: "flex",
-    justifyContent: "center",
-    gap: 24,
-    marginBottom: 18,
-    fontSize: "1rem",
-    color: "#222",
-    width: "100%",
-  };
-
-  const legendBoxStyle = (bg) => ({
-    display: "inline-block",
-    width: 20,
-    height: 20,
-    backgroundColor: bg,
-    borderRadius: 4,
-    border: "1px solid #999",
-    marginRight: 8,
-  });
-
-  const dataBtnStyle = {
-    background: "#00703c",
-    color: "#fff",
-    border: "none",
-    borderRadius: 6,
-    padding: "8px 18px",
-    fontSize: "1rem",
-    fontWeight: 600,
-    cursor: "pointer",
-    margin: "0 8px",
-    marginBottom: 8,
-    transition: "background 0.2s",
-  };
-
-  const actionBtnStyle = {
-    width: "100%",
-    padding: "12px",
-    fontSize: "1.1rem",
-    backgroundColor: "#00703c",
-    border: "none",
-    color: "white",
-    borderRadius: 8,
-    cursor: "pointer",
-    fontWeight: 700,
-    marginTop: 12,
-    transition: "background 0.2s",
-  };
-
-  const infoOutputStyle = {
-    marginTop: 10,
-    fontSize: "1rem",
-    color: "#333",
-    whiteSpace: "pre-wrap",
-    textAlign: "center",
-    minHeight: 24,
-  };
+  function canClickSeat(seatIndex) {
+    const availability = getSeatStatus(seatData.seats, seatIndex);
+    const userId = getUserId(seatData.seats, seatIndex);
+    
+    // Cannot click blocked seats
+    if (availability === -1) return false;
+    
+    // Can click vacant seats
+    if (availability === 0) return true;
+    
+    // Can click own reservations, but not others'
+    if (availability === 1 && userId === user.user_id) return true;
+    
+    return false;
+  }
 
   return (
     <div style={{ minHeight: "100vh", background: "#f5f7fa", padding: 0, margin: 0 }}>
-      <div style={cardStyle}>
-        <div style={headerStyle}>
-          <div style={titleStyle}>Seat Reservation</div>
+      <div className="card">
+        <div className="header">
+          <div className="title">Seat Reservation Portal</div>
+          {user && (
+            <div style={{ fontSize: "0.9rem", color: "#00703c", fontWeight: 500 }}>
+              User: {user.first_name} {user.last_name} (ID: {user.user_id})
+            </div>
+          )}
           <button
-            style={closeBtnStyle}
+            className="closeBtn"
             aria-label="Close Seat Availability Page"
             onClick={() => alert('Close')}
             onMouseOver={e => (e.currentTarget.style.color = "#00703c")}
@@ -342,53 +439,52 @@ export default function Reserve() {
           </button>
         </div>
 
-        <div style={dateNavStyle}>
-          <button style={dateBtnStyle} aria-label="Previous Day" onClick={onPrevDate}>
+        <div className="date-nav">
+          <button className="date-btn" aria-label="Previous Day" onClick={onPrevDate}>
             &larr;
           </button>
-        <div style={dateStyle} aria-live="polite" aria-atomic="true">
-          {/* {formatDate(currentDate)} */}
-          <input
-            type="date"
-            value={currentDate.toISOString().slice(0, 10)}
-            onChange={e => setCurrentDate(new Date(e.target.value))}
-            style={{
-              fontSize: "1.1rem",
-              fontWeight: 500,
-              border: "1px solid #ccc",
-              borderRadius: 6,
-              padding: "4px 10px",
-              color: "#00703c",
-              background: "#f5f5f5",
-              textAlign: "center",
-            }}
-          />
-        </div>
-          <button style={dateBtnStyle} aria-label="Next Day" onClick={onNextDate}>
+          <div style={{ minWidth: 220, textAlign: "center", fontWeight: 500, fontSize: "1.1rem", letterSpacing: "0.5px" }}>
+            <input
+              type="date"
+              value={currentDate.toISOString().slice(0, 10)}
+              onChange={e => setCurrentDate(new Date(e.target.value))}
+              style={{
+                fontSize: "1.1rem",
+                fontWeight: 500,
+                border: "1px solid #ccc",
+                borderRadius: 6,
+                padding: "4px 10px",
+                color: "#00703c",
+                background: "#f5f5f5",
+                textAlign: "center",
+              }}
+            />
+          </div>
+          <button className="date-btn" aria-label="Next Day" onClick={onNextDate}>
             &rarr;
           </button>
         </div>
 
-        <div style={{ margin: "16px 0", width: "100%", display: "flex" }}>
+        <div className="selector-container">
           <select
             value={selectedLab}
             onChange={e => setSelectedLab(e.target.value)}
-            style={{
-              fontSize: "1.1rem",
-              fontWeight: 500,
-              border: "1px solid #ccc",
-              borderRadius: 6,
-              padding: "6px 16px",
-              color: "#00703c",
-              background: "#f5f5f5",
-              width: "100%", 
-              textAlign: "center",
-              outline: "none",
-              flex: 1,
-            }}
+            aria-label="Select Laboratory"
           >
-            {labs.map(lab => (
-              <option key={lab} value={lab}>{lab}</option>
+            {labs.length === 0 && <option value="">Loading labs...</option>}
+            {labs.map(lab => {
+              console.log("Rendering lab option:", lab); // Debug log
+              return <option key={lab} value={lab}>{lab}</option>;
+            })}
+          </select>
+          
+          <select
+            value={selectedTimeSlot}
+            onChange={e => setSelectedTimeSlot(e.target.value)}
+            aria-label="Select Time Slot"
+          >
+            {timeSlots.map(slot => (
+              <option key={slot.key} value={slot.key}>{slot.display}</option>
             ))}
           </select>
         </div>
@@ -396,7 +492,6 @@ export default function Reserve() {
         <div
           className="seats"
           aria-label="Seats"
-          style={seatGridStyle}
         >
           {seatGrid.map((row, rowIndex) =>
             row.map((cell) => {
@@ -409,69 +504,55 @@ export default function Reserve() {
                   />
                 );
               }
-              const seatId = cell.seatId;
-              const seatClass = getSeatClass(seatId);
-              const isBlocked = seatClass.includes('blocked');
-              const isReserved = seatClass.includes('reserved');
-              const isAdded = seatClass.includes('added');
-              const occupantName =
-                isReserved
-                  ? reserverNames[seatId] || 'Unknown'
-                  : isAdded
-                  ? getOccupantName(currentDate, seatId)
-                  : '';
+              
+              const seatIndex = cell.seatIndex;
+              const availability = getSeatStatus(seatData.seats, seatIndex);
+              const seatClass = getSeatClass(seatIndex);
+              const isBlocked = availability === -1;
+              const isReserved = availability === 1;
+              const userId = getUserId(seatData.seats, seatIndex);
+              const isOwnReservation = isReserved && userId === user.user_id;
+              const occupantName = isReserved ? getOccupantName(seatData.seats, seatIndex) : '';
+              const clickable = canClickSeat(seatIndex);
 
               return (
                 <div
                   key={cell.key}
                   role="button"
-                  tabIndex={isBlocked ? -1 : 0}
-                  aria-pressed={getAriaPressed(seatId)}
-                  aria-label={`Seat ${seatId}${isBlocked ? ', blocked' : ''}${isReserved ? `, reserved` : ''}${isAdded ? ', added' : ''}`}
+                  tabIndex={clickable ? 0 : -1}
+                  aria-pressed={getAriaPressed(seatIndex)}
+                  aria-label={`Seat ${cell.seatId}${isBlocked ? ', blocked' : ''}${isReserved ? `, reserved` : ''}`}
                   title={
-                    isReserved
-                      ? `Reserved by ${occupantName}`
-                      : isAdded && occupantName
-                      ? `Reserved by ${occupantName}`
-                      : ''
+                    isBlocked
+                      ? `Seat ${cell.seatId} is blocked`
+                      : isReserved && occupantName
+                      ? isOwnReservation
+                        ? `Your reservation: ${occupantName}`
+                        : `Reserved by ${occupantName}`
+                      : `Seat ${cell.seatId} - Available`
                   }
                   className={seatClass}
                   style={{
                     width: 40,
                     height: 40,
-                    backgroundColor: isBlocked
-                      ? '#ccc'
-                      : isReserved
-                      ? '#f44336'
-                      : isAdded
-                      ? '#00703c'
-                      : selectedSeatId === seatId
-                      ? '#e0e0e0'
-                      : '#e0e0e0',
-                    color: isBlocked || isReserved || isAdded ? '#fff' : '#222',
+                    backgroundColor: getSeatBackgroundColor(seatIndex),
+                    color: isBlocked || isReserved ? '#fff' : '#222',
                     borderRadius: 6,
-                    border: isAdded
-                      ? '2px solid #00703c'
-                      : selectedSeatId === seatId
-                      ? '2px solid #00703c'
-                      : '1px solid #ccc',
+                    border: getSeatBorderColor(seatIndex),
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontWeight: isAdded || selectedSeatId === seatId ? 700 : 500,
-                    cursor: isBlocked
-                      ? 'not-allowed'
-                      : isAdded
-                      ? 'default'
-                      : 'pointer',
+                    fontWeight: isReserved || selectedSeatIndex === seatIndex ? 700 : 500,
                     outline: 'none',
                     transition: 'background 0.2s, border 0.2s',
+                    cursor: clickable ? 'pointer' : isBlocked ? 'not-allowed' : 'default',
+                    opacity: isBlocked ? 0.6 : 1,
                   }}
-                  onClick={() => onSeatClick(seatId)}
+                  onClick={() => clickable && onSeatClick(seatIndex)}
                   onKeyDown={(e) => {
-                    if ((e.key === ' ' || e.key === 'Enter') && !isBlocked) {
+                    if ((e.key === ' ' || e.key === 'Enter') && clickable) {
                       e.preventDefault();
-                      onSeatClick(seatId);
+                      onSeatClick(seatIndex);
                     }
                   }}
                 >
@@ -482,42 +563,61 @@ export default function Reserve() {
           )}
         </div>
 
-        <div style={legendStyle} aria-label="Seat Legend">
+        <div className="legend" aria-label="Seat Legend">
           <div>
-            <span style={legendBoxStyle("#e0e0e0")}></span> Available
+            <span className="legend-box" style={{ backgroundColor: "#e0e0e0" }}></span> Available
           </div>
           <div>
-            <span style={legendBoxStyle("#f44336")}></span> Reserved
+            <span className="legend-box" style={{ backgroundColor: "#00703c" }}></span> Your Reservation
           </div>
           <div>
-            <span style={legendBoxStyle("#000000")}></span> Blocked
+            <span className="legend-box" style={{ backgroundColor: "#f44336" }}></span> Reserved by Others
+          </div>
+          <div>
+            <span className="legend-box" style={{ backgroundColor: "#ccc" }}></span> Blocked
           </div>
         </div>
 
         <div style={{ width: "100%", textAlign: "center", marginBottom: 12 }}>
-          <button style={dataBtnStyle} onClick={onShowAvailableSeats}>
+          <button className="dataBtn" onClick={onShowAvailableSeats}>
             Show Available Seats
           </button>
-          <button style={dataBtnStyle} onClick={onShowOccupants}>
+          <button className="dataBtn" onClick={onShowOccupants}>
             Show Occupants
           </button>
-          <div style={infoOutputStyle}>
+          <div className="info-output">
             {infoOutput}
+          </div>
+          <div style={{fontSize: "0.8rem", color: "#666", marginTop: 8}}>
+            💡 User Mode: Select available seats or your own reservations
+            <div style={{color: "#00703c", marginTop: 4}}>
+              📝 You can only manage your own reservations
+            </div>
           </div>
         </div>
 
         <button
           className="actionBtn"
-          aria-label={addedSeatId === selectedSeatId && addedSeatId ? 'Remove Selected Seat' : 'Add Selected Seat'}
+          aria-label={
+            selectedSeatIndex !== null 
+              ? getSeatStatus(seatData.seats, selectedSeatIndex) === 1
+                ? 'Remove Your Reservation'
+                : 'Make Reservation'
+              : 'Select a seat first'
+          }
           onClick={onActionClick}
-          disabled={!selectedSeatId && !addedSeatId}
+          disabled={selectedSeatIndex === null}
           style={{
-            ...actionBtnStyle,
-            backgroundColor: (!selectedSeatId && !addedSeatId) ? "#999" : "#00703c",
-            cursor: (!selectedSeatId && !addedSeatId) ? "not-allowed" : "pointer",
+            backgroundColor: selectedSeatIndex === null ? "#999" : "#00703c",
+            cursor: selectedSeatIndex === null ? "not-allowed" : "pointer",
           }}
         >
-          {addedSeatId === selectedSeatId && addedSeatId ? 'Remove' : 'Add'}
+          {selectedSeatIndex !== null 
+            ? getSeatStatus(seatData.seats, selectedSeatIndex) === 1
+              ? 'Remove Reservation'
+              : 'Make Reservation'
+            : 'Select Seat'
+          }
         </button>
       </div>
     </div>

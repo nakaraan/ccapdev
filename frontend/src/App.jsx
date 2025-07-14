@@ -12,12 +12,20 @@ import ViewUsers from "./pages/ViewUsers";
 import UserProfile from "./pages/UserProfile";
 import ProfileEdit from "./pages/UserProfileEdit";
 import { Route, Routes, useLocation } from "react-router-dom";
+import { AdminRoute, AuthRoute, PublicRoute } from "./components/ProtectedRoute";
+import { useUser } from "./pages/UserContext";
 
 function App() {
   const location = useLocation();
+  const { user, loading } = useUser();
+  
   const isLogin = location.pathname === "/";
   const isFAQs = location.pathname === "/faqs";
   const isRegister = location.pathname === "/register";
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <>
@@ -26,10 +34,22 @@ function App() {
           <LNavbar />
           <div className="container">
             <Routes>
-              <Route path="/" element={<Login />} />
-              <Route path="/login" element={<Login />} />
+              <Route path="/" element={
+                <PublicRoute>
+                  <Login />
+                </PublicRoute>
+              } />
+              <Route path="/login" element={
+                <PublicRoute>
+                  <Login />
+                </PublicRoute>
+              } />
               <Route path="/faqs" element={<FAQs />} />
-              <Route path="/register" element={<Register />} />
+              <Route path="/register" element={
+                <PublicRoute>
+                  <Register />
+                </PublicRoute>
+              } />
             </Routes>
           </div>
         </>
@@ -38,14 +58,46 @@ function App() {
           <Navbar />
           <div className="container" style={{ width: "100%" }}>
             <Routes>
-              <Route path="/home" element={<Home />} />
-              <Route path="/reservations" element={<Reservations />} />
-              <Route path="/reserve" element={<Reserve />} />
-              <Route path="/reserve-admin" element={<ReserveAdmin />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/viewusers" element={<ViewUsers />} />
-              <Route path="/userprofile" element={<UserProfile />} />
-              <Route path="/userprofile-edit" element={<ProfileEdit />} />
+              <Route path="/home" element={
+                <AuthRoute>
+                  <Home />
+                </AuthRoute>
+              } />
+              <Route path="/reservations" element={
+                <AuthRoute>
+                  <Reservations />
+                </AuthRoute>
+              } />
+              <Route path="/reserve" element={
+                <AuthRoute>
+                  <Reserve />
+                </AuthRoute>
+              } />
+              <Route path="/reserve-admin" element={
+                <AdminRoute>
+                  <ReserveAdmin />
+                </AdminRoute>
+              } />
+              <Route path="/settings" element={
+                <AuthRoute>
+                  <Settings />
+                </AuthRoute>
+              } />
+              <Route path="/viewusers" element={
+                <AuthRoute>
+                  <ViewUsers />
+                </AuthRoute>
+              } />
+              <Route path="/userprofile" element={
+                <AuthRoute>
+                  <UserProfile />
+                </AuthRoute>
+              } />
+              <Route path="/userprofile-edit" element={
+                <AuthRoute>
+                  <ProfileEdit />
+                </AuthRoute>
+              } />
             </Routes>
           </div>
         </div>

@@ -9,8 +9,10 @@ function UserProfile() {
   const { user } = useUser();
 
   const description =
-    user?.description ||
+    user?.user_description ||
     "No description set. Edit your profile to add a description.";
+  
+  // TODO: Fetch actual reservations from database based on user ID
   const reservations = user?.reservations || [
     'GK302A – June 20, 2025 | 0730 - 1000',
     'GK302B – July 4, 2025 | 1230 - 1415',
@@ -35,7 +37,7 @@ function UserProfile() {
   return (
     <div className="userprofile-container">
       <div className="profile-page">
-        <p className="id-holder">VIEWING USER WITH ID: {user.id}</p>
+        <p className="id-holder">VIEWING USER WITH ID: {user.user_id}</p>
         <img
           src={profile}
           className="profile-picture large"
@@ -52,7 +54,7 @@ function UserProfile() {
           }}
         />
         <h2 className="username">{user.name}</h2>
-        <p className="user-role">{user.role}</p>
+        <p className="user-role">{user.user_role}</p>
         <div
           style={{
             display: "flex",

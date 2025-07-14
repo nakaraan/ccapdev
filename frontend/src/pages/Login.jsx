@@ -5,21 +5,33 @@ import { loginUser } from "./api"; // <-- You need to add this function in your 
 
 export default function Login() {
   const navigate = useNavigate();
-  const { setUser } = useUser();
+  const { loginUser: loginUserContext } = useUser();
   const [id, setId] = useState("");
   const [pw, setPw] = useState("");
   const [error, setError] = useState("");
 
   async function handleSubmit(e) {
     e.preventDefault();
+    
+    if (!id || !pw) {
+      setError("Please enter both ID and password.");
+      return;
+    }
+
     console.log("Login submitted with ID:", id, "and Password:", pw);
     try {
-      const user = await loginUser({ user_id: String(id), user_password: String(pw) });
-      setUser(user);
-      navigate("/home");
+      const userData = await loginUser({ user_id: String(id), user_password: String(pw) });
+      loginUserContext(userData); // Use enhanced login function from context
+      
+      // Navigate based on user role
+      if (userData.user_role === 'Admin') {
+        navigate("/home"); // or navigate to admin dashboard
+      } else {
+        navigate("/home");
+      }
     } catch (err) {
       setError("Invalid ID or password.");
-      console.log(err)
+      console.log(err);
     }
   }
 

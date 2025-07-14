@@ -79,16 +79,19 @@ userRoutes.route("/users").post(async (request, response) => {
 // update user
 userRoutes.route("/users/:id").put(async (request, response) => { // request from front end, response is from back end
     let db = database.getDb()
+    
+    // Only include fields that are actually provided in the request body
+    let updateFields = {}
+    if (request.body.user_id !== undefined) updateFields.user_id = request.body.user_id
+    if (request.body.first_name !== undefined) updateFields.first_name = request.body.first_name
+    if (request.body.last_name !== undefined) updateFields.last_name = request.body.last_name
+    if (request.body.user_password !== undefined) updateFields.user_password = request.body.user_password
+    if (request.body.user_role !== undefined) updateFields.user_role = request.body.user_role
+    if (request.body.email_address !== undefined) updateFields.email_address = request.body.email_address
+    if (request.body.user_description !== undefined) updateFields.user_description = request.body.user_description
+    
     let mongoObject = { 
-        $set: {
-            user_id: request.body.user_id,
-            first_name: request.body.first_name,
-            last_name: request.body.last_name,
-            user_password: request.body.user_password,
-            user_role: request.body.user_role,
-            email_address: request.body.email_address,
-            user_description: request.body.user_description
-        }
+        $set: updateFields
     }
     let data = await db.collection("users").updateOne({_id: new ObjectId(request.params.id)}, mongoObject)
     response.json(data)
@@ -100,5 +103,222 @@ userRoutes.route("/users/:id").delete(async (request, response) => { // request 
     let data = await db.collection("users").deleteOne({_id: new ObjectId(request.params.id)})
     response.json(data)
 })
+
+// === SEAT RESERVATION ROUTES ===
+
+// Get seat reservations for a specific date, lab, and time slot
+userRoutes.route("/reservations/:date/:lab/:timeSlot").get(async (request, response) => {
+    let db = database.getDb();
+    try {
+        const { date, lab, timeSlot } = request.params;
+        let data = await db.collection("reservations").findOne({
+            date: date,
+            lab: lab,
+            timeSlot: timeSlot
+        });
+        
+        if (data) {
+            response.json(data.seats || {});
+        } else {
+            response.json({}); // Return empty object if no reservations found
+        }
+    } catch (error) {
+        response.status(500).json({ error: error.message });
+    }
+});
+
+// Create or update a seat reservation
+userRoutes.route("/reservations").post(async (request, response) => {
+    let db = database.getDb();
+    try {
+        const { date, lab, timeSlot, seatIndex, status, occupantName, user_id } = request.body;
+        
+        const filter = { date, lab, timeSlot };
+        const update = {
+            $set: {
+                [`seats.${seatIndex}`]: {
+                    status: status,
+                    occupantName: occupantName,
+                    ...(user_id && { user_id: user_id })
+                }
+            }
+        };
+        
+        let data = await db.collection("reservations").updateOne(
+            filter,
+            update,
+            { upsert: true }
+        );
+        
+        response.json(data);
+    } catch (error) {
+        response.status(500).json({ error: error.message });
+    }
+});
+
+// Clear a seat reservation (make it vacant)
+userRoutes.route("/reservations/clear").post(async (request, response) => {
+    let db = database.getDb();
+    try {
+        const { date, lab, timeSlot, seatIndex } = request.body;
+        
+        const filter = { date, lab, timeSlot };
+        const update = {
+            $unset: { [`seats.${seatIndex}`]: "" }
+        };
+        
+        let data = await db.collection("reservations").updateOne(filter, update);
+        response.json(data);
+    } catch (error) {
+        response.status(500).json({ error: error.message });
+    }
+});
+
+// Toggle blocked seat
+userRoutes.route("/reservations/toggle-block").post(async (request, response) => {
+    let db = database.getDb();
+    try {
+        const { date, lab, timeSlot, seatIndex } = request.body;
+        
+        // First, get current seat data
+        const doc = await db.collection("reservations").findOne({
+            date, lab, timeSlot
+        });
+        
+        const currentSeat = doc?.seats?.[seatIndex];
+        const isCurrentlyBlocked = currentSeat?.status === -1;
+        
+        if (isCurrentlyBlocked) {
+            // Unblock: remove from map
+            const update = { $unset: { [`seats.${seatIndex}`]: "" } };
+            let data = await db.collection("reservations").updateOne(
+                { date, lab, timeSlot },
+                update
+            );
+            response.json(data);
+        } else {
+            // Block: set status to -1 (no occupantName for blocked seats)
+            const update = {
+                $set: {
+                    [`seats.${seatIndex}`]: {
+                        status: -1
+                    }
+                }
+            };
+            let data = await db.collection("reservations").updateOne(
+                { date, lab, timeSlot },
+                update,
+                { upsert: true }
+            );
+            response.json(data);
+        }
+    } catch (error) {
+        response.status(500).json({ error: error.message });
+    }
+});
+
+// Clear all reservations for a specific date, lab, and time slot
+userRoutes.route("/reservations/clear-all").delete(async (request, response) => {
+    let db = database.getDb();
+    try {
+        const { date, lab, timeSlot } = request.body;
+        let data = await db.collection("reservations").deleteOne({
+            date: date,
+            lab: lab,
+            timeSlot: timeSlot
+        });
+        response.json(data);
+    } catch (error) {
+        response.status(500).json({ error: error.message });
+    }
+});
+
+// Get all reservations for a specific user
+userRoutes.route("/user-reservations/:user_id").get(async (request, response) => {
+    let db = database.getDb();
+    try {
+        const { user_id } = request.params;
+        console.log("=== SEARCHING FOR USER RESERVATIONS ===");
+        console.log("Target user_id:", user_id);
+        
+        // Get all reservations from the collection
+        let allReservations = await db.collection("reservations").find({}).toArray();
+        console.log("Total reservation documents found:", allReservations.length);
+        
+        const userReservations = [];
+        
+        // Go through every single reservation document
+        allReservations.forEach((reservationDoc, docIndex) => {
+            console.log(`\n--- Processing reservation document ${docIndex + 1} ---`);
+            console.log("Document ID:", reservationDoc._id);
+            console.log("Date:", reservationDoc.date);
+            console.log("Lab:", reservationDoc.lab);
+            console.log("Time Slot:", reservationDoc.timeSlot);
+            
+            // Check if this document has seats
+            if (reservationDoc.seats) {
+                console.log("Seats object found, checking each seat...");
+                
+                // Go through every seat in this reservation
+                Object.keys(reservationDoc.seats).forEach(seatIndex => {
+                    const seatData = reservationDoc.seats[seatIndex];
+                    console.log(`  Seat ${seatIndex}:`, {
+                        user_id: seatData.user_id,
+                        status: seatData.status,
+                        occupantName: seatData.occupantName
+                    });
+                    
+                    // Check if this seat belongs to our target user
+                    if (seatData.user_id === user_id) {
+                        console.log(`  ✓ FOUND MATCHING USER_ID for seat ${seatIndex}!`);
+                        
+                        // Check if status is 1 (reserved)
+                        const status = parseInt(seatData.status) || seatData.status;
+                        if (status === 1) {
+                            console.log(`  ✓ SEAT IS RESERVED (status = ${seatData.status})`);
+                            
+                            // Add this reservation to the list
+                            const reservation = {
+                                date: reservationDoc.date,
+                                lab: reservationDoc.lab,
+                                timeSlot: reservationDoc.timeSlot,
+                                seatIndex: parseInt(seatIndex),
+                                seatId: `S${parseInt(seatIndex) + 1}`,
+                                occupantName: seatData.occupantName
+                            };
+                            
+                            userReservations.push(reservation);
+                            console.log("  ✓ ADDED TO USER RESERVATIONS:", reservation);
+                        } else {
+                            console.log(`  ✗ Seat not reserved (status = ${seatData.status})`);
+                        }
+                    }
+                });
+            } else {
+                console.log("No seats object in this document");
+            }
+        });
+        
+        console.log("\n=== FINAL RESULTS ===");
+        console.log("Total user reservations found:", userReservations.length);
+        console.log("User reservations:", userReservations);
+        
+        response.json(userReservations);
+    } catch (error) {
+        console.error("Error in user-reservations route:", error);
+        response.status(500).json({ error: error.message });
+    }
+});
+
+// Get all labs (for use as indexes in the reservation system)
+userRoutes.route("/labs").get(async (request, response) => {
+    let db = database.getDb();
+    try {
+        const labs = await db.collection("labs").find({}).toArray();
+        response.json(labs);
+    } catch (error) {
+        response.status(500).json({ error: error.message });
+    }
+});
 
 module.exports = userRoutes

@@ -21,48 +21,10 @@ export default function Home() {
       </style>
       <h1 style={{ color: "#00703c", marginBottom: 12 }}> Welcome! </h1>
       <p style={{ color: "#333", marginBottom: 24 }}>
-        This page features links to all the webpages in our project.
+         This is the landing page! Refer to the sidebar for navigation. <br /><br />
+
+         You may go to settings to log out.
       </p>
-      <ul
-        className="custom-marker"
-        style={{
-          fontSize: "1.1rem",
-          lineHeight: 2,
-          padding: 0,
-          margin: 0
-        }}
-      >
-        <li>
-          <Link to="/home">Home (this page)</Link>
-        </li>
-        <li>
-          <Link to="/">Login</Link>
-        </li>
-        <li>
-          <Link to="/faqs">FAQs (Credits)</Link>
-        </li>
-        <li>
-          <Link to="/viewusers">View Users (Search for Users)</Link>
-        </li>
-        <li>
-          <Link to="/reservations">Reservations (View | Edit | Delete)</Link>
-        </li>
-        <li>
-          <Link to="/reserve">Reserve (User)</Link>
-        </li>
-        <li>
-          <Link to="/reserve-admin">Reserve (Admin/Block Mode)</Link>
-        </li>
-        <li>
-          <Link to="/settings">Settings (Logout | Delete) </Link>
-        </li>
-        <li>
-          <Link to="/userprofile">User Profile</Link>
-        </li>
-        <li>
-          <Link to="/userprofile-edit">Edit User Profile</Link>
-        </li>
-      </ul>
     </div>
   );
 }

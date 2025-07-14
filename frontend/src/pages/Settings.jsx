@@ -1,11 +1,14 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useUser } from "./UserContext";
 
 export default function ProfileSettings() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-   const navigate = useNavigate();
+  const navigate = useNavigate();
+  const { logoutUser } = useUser();
 
   const handleLogout = () => {
+    logoutUser(); // Clear user session
     navigate("/");
     console.log("User logged out.");
   };
