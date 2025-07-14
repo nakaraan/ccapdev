@@ -4,12 +4,22 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 ## How to run
 
+Running the frontend:
+### 'cd frontend'
+### 'npm start'
+
+Running the backend:
+### 'cd backend'
+### 'node server.js'
+
+
 In case of errors in compiling, run the following in the command line, run the following:
 ### 'npm uninstall react-scripts'
 ### 'npm install react-scripts@5.0.1'
-### 'npm install antd'
+### 'npm install antd mongodb dotenv express cors axios'
 
-Once compiled successfully, you can now run the program through **'npm start'**
+Once compiled successfully, you can now run the program through **'npm start' in the frontend**
+
 
 ## Available Scripts
 
